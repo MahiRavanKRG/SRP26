@@ -30,6 +30,7 @@ srp26.egg-info/
 # Personal session logs & local archives (excluded from GitHub)
 .ai_history/
 _local_archive/
+proposed model.md
 
 # LaTeX build artifacts
 *.aux
