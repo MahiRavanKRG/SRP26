@@ -53,6 +53,7 @@ def build_raw_dataloaders(
     seq_len: int = 336,
     pred_len: int = 96,
     batch_size: int = 32,
+    extract_batch_size: int = 64,
 ):
     """Build train/val/test DataLoaders following canonical SRP26 split rules."""
     csv_path = resolve_data_path(dataset_name, repo_root=REPO_ROOT)
@@ -72,9 +73,9 @@ def build_raw_dataloaders(
     test_ds = TimeSeriesSlidingWindowDataset(scaled[test_start:test_end], seq_len, pred_len, start_idx_in_full=test_start, return_cycle=True)
 
     return {
-        "train_loader_ordered": DataLoader(train_ds, batch_size=batch_size, shuffle=False),
-        "val_loader": DataLoader(val_ds, batch_size=batch_size, shuffle=False),
-        "test_loader": DataLoader(test_ds, batch_size=batch_size, shuffle=False),
+        "train_loader_ordered": DataLoader(train_ds, batch_size=extract_batch_size, shuffle=False),
+        "val_loader": DataLoader(val_ds, batch_size=extract_batch_size, shuffle=False),
+        "test_loader": DataLoader(test_ds, batch_size=extract_batch_size, shuffle=False),
         "train_scaled": train_slice,
         "channels": n_channels,
         "split_label": split_label,
@@ -106,12 +107,53 @@ def _print_report(dataset: str, pred_len: int, student_type: str, seed: int, rep
     print("=" * 88 + "\n")
 
 
+def _aggregate_seed_reports(reports: list[Dict]) -> Dict:
+    """Compute exact mean and sample/pop std across multi-seed reports."""
+    import numpy as np
+
+    def _agg(values: list[float]) -> Dict[str, float]:
+        arr = np.asarray(values, dtype=np.float64)
+        return {"mean": float(arr.mean()), "std": float(arr.std(ddof=0))}
+
+    summary: Dict[str, object] = {
+        "dataset": reports[0]["dataset"],
+        "pred_len": reports[0]["pred_len"],
+        "seq_len": reports[0]["seq_len"],
+        "student_type": reports[0]["student_type"],
+        "teacher_name": reports[0]["teacher_name"],
+        "gate_mode": reports[0]["gate_mode"],
+        "seeds": [r["seed"] for r in reports],
+        "periods": reports[0]["periods"],
+        "params": reports[0]["params"],
+        "gates": {b: _agg([r["gates"][b] for r in reports]) for b in BANDS},
+        "models": {},
+        "hypothesis_passes": sum(1 for r in reports if r["hypothesis"]["passed"]),
+        "total_seeds": len(reports),
+    }
+    for key in ("teacher", "warm_student", "distilled_student"):
+        model_stats: Dict[str, object] = {
+            metric: _agg([r[key][metric] for r in reports])
+            for metric in ("mse", "mae", "lsd")
+        }
+        model_stats["bands"] = {
+            band: {
+                metric: _agg([r[key]["bands"][band][metric] for r in reports])
+                for metric in ("fvu", "lsd", "mse")
+            }
+            for band in BANDS
+        }
+        summary["models"][key] = model_stats
+    return summary
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run DSOF-Guided Spectral Distillation (DSOF-SD).")
     parser.add_argument("--dataset", type=str, default="ETTh1.csv")
     parser.add_argument("--seq_len", type=int, default=336)
     parser.add_argument("--pred_len", type=int, default=96)
     parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--extract_batch_size", type=int, default=64)
+    parser.add_argument("--per_core_batch_size", type=int, default=256)
     parser.add_argument("--student_type", type=str, default="sor", choices=["sor", "linear", "mlp", "cnn", "cyclenet_lite"])
     parser.add_argument("--teacher", type=str, default="fourier", choices=["fourier", "timesfm"])
     parser.add_argument("--teacher_cache", type=str, default="")
@@ -122,29 +164,40 @@ def main() -> None:
     parser.add_argument("--lambda_phase", type=float, default=0.0)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--seed", type=int, default=2024)
+    parser.add_argument("--seeds", type=int, nargs="*", default=None)
     parser.add_argument("--output", type=str, default="")
     args = parser.parse_args()
 
-    set_seed(args.seed)
     ensure_hf_cache()
     device = get_device()
+    seeds = args.seeds if args.seeds else [args.seed]
 
-    raw_info = build_raw_dataloaders(args.dataset, seq_len=args.seq_len, pred_len=args.pred_len, batch_size=args.batch_size)
+    raw_info = build_raw_dataloaders(
+        args.dataset,
+        seq_len=args.seq_len,
+        pred_len=args.pred_len,
+        batch_size=args.batch_size,
+        extract_batch_size=args.extract_batch_size,
+    )
 
-    # Phase 0: Load or build offline teacher cache
+    # Phase 0: Load or build offline teacher cache ONCE across all seeds
     if args.teacher_cache and os.path.exists(args.teacher_cache):
         print(f"Loading cached teacher targets from {args.teacher_cache} ...")
         train_ds, val_ds, test_ds, _ = TeacherTargetCache.load(args.teacher_cache)
     else:
         print(f"Generating Phase 0 offline teacher targets via '{args.teacher}' ...")
         if args.teacher == "timesfm":
-            teacher_fn = TimesFMTeacher(seq_len=args.seq_len, pred_len=args.pred_len)
+            teacher_fn = TimesFMTeacher(
+                seq_len=args.seq_len,
+                pred_len=args.pred_len,
+                per_core_batch_size=args.per_core_batch_size,
+            )
         else:
             teacher_fn = FourierBaseTeacher(pred_len=args.pred_len, top_k=3)
 
-        train_ds = TeacherTargetCache.build_from_loader(raw_info["train_loader_ordered"], teacher_fn, device=device)
-        val_ds = TeacherTargetCache.build_from_loader(raw_info["val_loader"], teacher_fn, device=device)
-        test_ds = TeacherTargetCache.build_from_loader(raw_info["test_loader"], teacher_fn, device=device)
+        train_ds = TeacherTargetCache.build_from_loader(raw_info["train_loader_ordered"], teacher_fn, device=device, progress_label="train")
+        val_ds = TeacherTargetCache.build_from_loader(raw_info["val_loader"], teacher_fn, device=device, progress_label="val")
+        test_ds = TeacherTargetCache.build_from_loader(raw_info["test_loader"], teacher_fn, device=device, progress_label="test")
 
         if args.teacher_cache:
             TeacherTargetCache.save(
@@ -156,46 +209,67 @@ def main() -> None:
             )
             print(f"Saved teacher cache to {args.teacher_cache}")
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=len(train_ds) > args.batch_size)
-    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
-    test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False)
-
     periods, use_cd = discover_dataset_periods(raw_info["train_scaled"], seq_len=args.seq_len)
     print(f"Discovered student periods: {periods} | channel_dependence={use_cd}")
 
-    student = build_dsof_student(
-        seq_len=args.seq_len,
-        pred_len=args.pred_len,
-        channels=raw_info["channels"],
-        student_type=args.student_type,
-        periods=periods,
-        use_channel_dependence=use_cd,
-    )
+    reports: list[Dict] = []
+    stem = Path(args.dataset).stem
+    for seed in seeds:
+        set_seed(seed)
+        train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=len(train_ds) > args.batch_size)
+        val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
+        test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False)
 
-    cfg = DSOFSDConfig(
-        gate_mode=args.gate_mode,
-        warm_epochs=args.warm_epochs,
-        distill_epochs=args.epochs,
-        lr=args.lr,
-        lambda_max=args.lambda_max,
-        lambda_phase=args.lambda_phase,
-    )
-    trainer = DSOFSDTrainer(student=student, config=cfg, device=device)
-    report = trainer.fit_and_evaluate(train_loader, val_loader, test_loader)
-    report["dataset"] = args.dataset
-    report["pred_len"] = args.pred_len
-    report["student_type"] = args.student_type
-    report["teacher_name"] = args.teacher
-    report["seed"] = args.seed
-    report["periods"] = periods
+        student = build_dsof_student(
+            seq_len=args.seq_len,
+            pred_len=args.pred_len,
+            channels=raw_info["channels"],
+            student_type=args.student_type,
+            periods=periods,
+            use_channel_dependence=use_cd,
+        )
 
-    _print_report(args.dataset, args.pred_len, args.student_type, args.seed, report)
+        cfg = DSOFSDConfig(
+            gate_mode=args.gate_mode,
+            warm_epochs=args.warm_epochs,
+            distill_epochs=args.epochs,
+            lr=args.lr,
+            lambda_max=args.lambda_max,
+            lambda_phase=args.lambda_phase,
+        )
+        trainer = DSOFSDTrainer(student=student, config=cfg, device=device)
+        report = trainer.fit_and_evaluate(train_loader, val_loader, test_loader)
+        report["dataset"] = args.dataset
+        report["seq_len"] = args.seq_len
+        report["pred_len"] = args.pred_len
+        report["student_type"] = args.student_type
+        report["teacher_name"] = args.teacher
+        report["gate_mode"] = args.gate_mode
+        report["seed"] = seed
+        report["periods"] = periods
+        report["channel_dependence"] = use_cd
+        reports.append(report)
 
-    out_path = Path(args.output or (REPO_ROOT / "results" / f"dsof_sd_{Path(args.dataset).stem}_H{args.pred_len}_{args.student_type}_s{args.seed}.json"))
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as handle:
-        json.dump(report, handle, indent=2)
-    print(f"Saved DSOF-SD results to {out_path}")
+        _print_report(args.dataset, args.pred_len, args.student_type, seed, report)
+
+        if len(seeds) == 1 and args.output:
+            out_path = Path(args.output)
+        else:
+            out_path = REPO_ROOT / "results" / "dsof_sd" / f"dsof_sd_{stem}_H{args.pred_len}_{args.student_type}_{args.teacher}_{args.gate_mode}_s{seed}.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as handle:
+            json.dump(report, handle, indent=2)
+        print(f"Saved DSOF-SD results to {out_path}")
+
+    if len(reports) > 1:
+        summary = _aggregate_seed_reports(reports)
+        summary_path = Path(args.output) if args.output else (
+            REPO_ROOT / "results" / "dsof_sd" / f"dsof_sd_{stem}_H{args.pred_len}_{args.student_type}_{args.teacher}_{args.gate_mode}_summary.json"
+        )
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(summary_path, "w", encoding="utf-8") as handle:
+            json.dump(summary, handle, indent=2)
+        print(f"Saved {len(reports)}-seed summary to {summary_path}")
 
 
 if __name__ == "__main__":

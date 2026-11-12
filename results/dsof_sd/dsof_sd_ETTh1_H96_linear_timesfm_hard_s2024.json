@@ -1,0 +1,197 @@
+{
+  "params": 32534,
+  "runtime_sec": 50.94,
+  "config": {
+    "low_cutoff": 0.1,
+    "high_cutoff": 0.4,
+    "fs": 1.0,
+    "gate_mode": "hard",
+    "soft_alpha": 5.0,
+    "warm_epochs": 5,
+    "distill_epochs": 20,
+    "patience": 7,
+    "lr": 0.0003,
+    "weight_decay": 0.001,
+    "lambda_max": 0.2,
+    "lambda_phase": 0.0,
+    "eps": 1e-06
+  },
+  "gates": {
+    "low": 0.0,
+    "mid": 1.0,
+    "high": 1.0
+  },
+  "calibration": {
+    "fvu_teacher": {
+      "low": 1.0012363195419312,
+      "mid": 0.8597896695137024,
+      "high": 0.9711835384368896
+    },
+    "fvu_warm_student": {
+      "low": 0.9604679942131042,
+      "mid": 0.9075462818145752,
+      "high": 1.1539433002471924
+    },
+    "gates": {
+      "low": 0.0,
+      "mid": 1.0,
+      "high": 1.0
+    }
+  },
+  "teacher": {
+    "mse": 0.395034,
+    "mae": 0.388988,
+    "lsd": 1.95433,
+    "bands": {
+      "low": {
+        "mse": 0.340567,
+        "fvu": 0.615849,
+        "lsd": 1.506241
+      },
+      "mid": {
+        "mse": 0.047517,
+        "fvu": 0.67831,
+        "lsd": 1.964806
+      },
+      "high": {
+        "mse": 0.006951,
+        "fvu": 0.971981,
+        "lsd": 2.291503
+      }
+    }
+  },
+  "warm_student": {
+    "mse": 0.378835,
+    "mae": 0.400158,
+    "lsd": 1.316117,
+    "bands": {
+      "low": {
+        "mse": 0.320092,
+        "fvu": 0.578825,
+        "lsd": 1.456918
+      },
+      "mid": {
+        "mse": 0.05072,
+        "fvu": 0.724032,
+        "lsd": 1.283653
+      },
+      "high": {
+        "mse": 0.008023,
+        "fvu": 1.121984,
+        "lsd": 1.259551
+      }
+    }
+  },
+  "distilled_student": {
+    "mse": 0.379346,
+    "mae": 0.400151,
+    "lsd": 1.344274,
+    "bands": {
+      "low": {
+        "mse": 0.321682,
+        "fvu": 0.5817,
+        "lsd": 1.45482
+      },
+      "mid": {
+        "mse": 0.049857,
+        "fvu": 0.711714,
+        "lsd": 1.320158
+      },
+      "high": {
+        "mse": 0.007807,
+        "fvu": 1.091753,
+        "lsd": 1.297682
+      }
+    }
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "lam_spec": 0.0,
+      "loss_total": 0.34206640429329127,
+      "loss_time": 0.34206640429329127,
+      "loss_spec": 4.293108524754643,
+      "val_mse": 0.6771334700883225
+    },
+    {
+      "epoch": 2,
+      "lam_spec": 0.010526315789473684,
+      "loss_total": 0.3962468870449811,
+      "loss_time": 0.3446490205824375,
+      "loss_spec": 4.901797126978636,
+      "val_mse": 0.6892271930482272
+    },
+    {
+      "epoch": 3,
+      "lam_spec": 0.021052631578947368,
+      "loss_total": 0.4346095727523789,
+      "loss_time": 0.3425324148265645,
+      "loss_spec": 4.373664822429419,
+      "val_mse": 0.6846657701136669
+    },
+    {
+      "epoch": 4,
+      "lam_spec": 0.03157894736842106,
+      "loss_total": 0.4654788075713441,
+      "loss_time": 0.3411141255637631,
+      "loss_spec": 3.938214987516403,
+      "val_mse": 0.6874030058920215
+    },
+    {
+      "epoch": 5,
+      "lam_spec": 0.042105263157894736,
+      "loss_total": 0.4965078983223066,
+      "loss_time": 0.3406304685631767,
+      "loss_spec": 3.7020887844264507,
+      "val_mse": 0.6813307521383386
+    },
+    {
+      "epoch": 6,
+      "lam_spec": 0.05263157894736842,
+      "loss_total": 0.5248675529146567,
+      "loss_time": 0.3396200012648478,
+      "loss_spec": 3.519703444093466,
+      "val_mse": 0.6839330947815969
+    },
+    {
+      "epoch": 7,
+      "lam_spec": 0.06315789473684212,
+      "loss_total": 0.552367320517078,
+      "loss_time": 0.3397365642013028,
+      "loss_spec": 3.3666536808013916,
+      "val_mse": 0.6842551723264003
+    },
+    {
+      "epoch": 8,
+      "lam_spec": 0.0736842105263158,
+      "loss_total": 0.5795832583680749,
+      "loss_time": 0.339437784277834,
+      "loss_spec": 3.2591172261163592,
+      "val_mse": 0.6799440814560679
+    }
+  ],
+  "hypothesis": {
+    "status": "refuted",
+    "passed": false,
+    "active_bands": [
+      "mid",
+      "high"
+    ],
+    "band_lsd_improved": {
+      "mid": false,
+      "high": false
+    },
+    "mse_non_regressing": false
+  },
+  "dataset": "ETTh1.csv",
+  "seq_len": 336,
+  "pred_len": 96,
+  "student_type": "linear",
+  "teacher_name": "timesfm",
+  "gate_mode": "hard",
+  "seed": 2024,
+  "periods": [
+    24
+  ],
+  "channel_dependence": false
+}

@@ -93,12 +93,15 @@ class TeacherTargetCache:
         loader: DataLoader,
         teacher_fn: Callable[[torch.Tensor], torch.Tensor],
         device: torch.device | str = "cpu",
+        progress_label: str = "",
     ) -> TeacherTargetDataset:
         """Run frozen ``teacher_fn(x)`` once across ``loader`` and cache outputs on CPU."""
         xs, ys, yts, cidxs = [], [], [], []
         offset = 0
+        total_batches = len(loader) if hasattr(loader, "__len__") else 0
+        t_start = time.time()
         with torch.no_grad():
-            for batch in loader:
+            for batch_idx, batch in enumerate(loader, start=1):
                 if len(batch) == 3:
                     x_b, y_b, c_b = batch
                 else:
@@ -110,6 +113,16 @@ class TeacherTargetCache:
                 ys.append(y_b.cpu())
                 yts.append(y_t)
                 cidxs.append(c_b.cpu())
+                if progress_label and total_batches > 0 and (
+                    batch_idx == 1 or batch_idx == total_batches or batch_idx % max(1, total_batches // 5) == 0
+                ):
+                    elapsed = time.time() - t_start
+                    rate = offset / max(elapsed, 1e-6)
+                    print(
+                        f"  [{progress_label}] batch {batch_idx}/{total_batches} "
+                        f"({offset} windows, {elapsed:.1f}s, {rate:.1f} win/s)",
+                        flush=True,
+                    )
         return TeacherTargetDataset(
             torch.cat(xs, dim=0),
             torch.cat(ys, dim=0),
@@ -149,10 +162,17 @@ class TeacherTargetCache:
 class TimesFMTeacher:
     """Lazy wrapper around Google TimesFM 2.5 (200M) for Phase 0 target extraction."""
 
-    def __init__(self, seq_len: int = 336, pred_len: int = 96, model_id: str = "google/timesfm-2.5-200m-pytorch") -> None:
+    def __init__(
+        self,
+        seq_len: int = 336,
+        pred_len: int = 96,
+        model_id: str = "google/timesfm-2.5-200m-pytorch",
+        per_core_batch_size: int = 256,
+    ) -> None:
         self.seq_len = seq_len
         self.pred_len = pred_len
         self.model_id = model_id
+        self.per_core_batch_size = per_core_batch_size
         self._model = None
 
     def _ensure_loaded(self) -> None:
@@ -165,6 +185,7 @@ class TimesFMTeacher:
             ForecastConfig(
                 max_context=self.seq_len,
                 max_horizon=self.pred_len,
+                per_core_batch_size=self.per_core_batch_size,
                 normalize_inputs=True,
                 use_continuous_quantile_head=True,
                 force_flip_invariance=True,
