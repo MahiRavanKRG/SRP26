@@ -1,0 +1,21 @@
+{
+    "model": "freq",
+    "dataset": "ETTh1.csv",
+    "seq_len": 336,
+    "pred_len": 192,
+    "mse": 0.4674350321292877,
+    "mae": 0.4849497079849243,
+    "band_mse_low": 0.38988590849189325,
+    "band_mse_mid": 0.06526559945181327,
+    "band_mse_high": 0.012283511018055615,
+    "band_fvu_low": 0.5358167885050176,
+    "band_fvu_mid": 0.7936256962585626,
+    "band_fvu_high": 1.0371378024716218,
+    "energy_ratio_low": 0.6520272261614579,
+    "energy_ratio_mid": 0.23527275396654734,
+    "energy_ratio_high": 0.09171428637216494,
+    "mean_coherence": 1.0,
+    "lsd": 13.276506423950195,
+    "alpha": 0.4984705150127411,
+    "failure_windows_flagged": 27517
+}

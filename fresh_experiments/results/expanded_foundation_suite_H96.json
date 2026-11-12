@@ -1,0 +1,167 @@
+[
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "Google TimesFM 2.5",
+    "Architecture": "Patched Transformer (Non-AR)",
+    "Params": "200M",
+    "MSE": 0.4601,
+    "MAE": 0.4151,
+    "Mid_FVU": 0.6283,
+    "LSD_dB": 17.23,
+    "Runtime_Sec": 0.79
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "Amazon Chronos-Bolt-Base",
+    "Architecture": "Patch Encoder-Decoder (Non-AR)",
+    "Params": "200M",
+    "MSE": 0.4687,
+    "MAE": 0.4175,
+    "Mid_FVU": 0.625,
+    "LSD_dB": 18.01,
+    "Runtime_Sec": 1.09
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "IBM Granite TTM-R1",
+    "Architecture": "MLP-Mixer Foundation Model",
+    "Params": "805K",
+    "MSE": 0.4945,
+    "MAE": 0.4575,
+    "Mid_FVU": 0.7235,
+    "LSD_dB": 21.83,
+    "Runtime_Sec": 0.03
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "Amazon Chronos-T5",
+    "Architecture": "Discrete Tokenized T5 (AR)",
+    "Params": "8M",
+    "MSE": 1.6665,
+    "MAE": 0.6155,
+    "Mid_FVU": 3.4616,
+    "LSD_dB": 12.56,
+    "Runtime_Sec": 3.86
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "CycleNet (W=24)",
+    "Architecture": "Recurrent Periodic Queue",
+    "Params": "32K",
+    "MSE": 0.6159,
+    "MAE": 0.5344,
+    "Mid_FVU": 1.4015,
+    "LSD_dB": 10.05,
+    "Runtime_Sec": 0.34
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "Google TimesFM 2.5",
+    "Architecture": "Patched Transformer (Non-AR)",
+    "Params": "200M",
+    "MSE": 0.1895,
+    "MAE": 0.1914,
+    "Mid_FVU": 0.9794,
+    "LSD_dB": 18.73,
+    "Runtime_Sec": 1.43
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "Amazon Chronos-Bolt-Base",
+    "Architecture": "Patch Encoder-Decoder (Non-AR)",
+    "Params": "200M",
+    "MSE": 0.2114,
+    "MAE": 0.2167,
+    "Mid_FVU": 0.9875,
+    "LSD_dB": 20.33,
+    "Runtime_Sec": 1.69
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "IBM Granite TTM-R1",
+    "Architecture": "MLP-Mixer Foundation Model",
+    "Params": "805K",
+    "MSE": 0.1916,
+    "MAE": 0.2117,
+    "Mid_FVU": 0.9766,
+    "LSD_dB": 22.22,
+    "Runtime_Sec": 0.02
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "Amazon Chronos-T5",
+    "Architecture": "Discrete Tokenized T5 (AR)",
+    "Params": "8M",
+    "MSE": 0.4627,
+    "MAE": 0.3196,
+    "Mid_FVU": 6.4814,
+    "LSD_dB": 22.09,
+    "Runtime_Sec": 9.21
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "CycleNet (W=24)",
+    "Architecture": "Recurrent Periodic Queue",
+    "Params": "32K",
+    "MSE": 0.2353,
+    "MAE": 0.2762,
+    "Mid_FVU": 1.6518,
+    "LSD_dB": 20.21,
+    "Runtime_Sec": 0.22
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "Google TimesFM 2.5",
+    "Architecture": "Patched Transformer (Non-AR)",
+    "Params": "200M",
+    "MSE": 0.3511,
+    "MAE": 0.226,
+    "Mid_FVU": 0.4772,
+    "LSD_dB": 12.04,
+    "Runtime_Sec": 40.08
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "Amazon Chronos-Bolt-Base",
+    "Architecture": "Patch Encoder-Decoder (Non-AR)",
+    "Params": "200M",
+    "MSE": 0.3772,
+    "MAE": 0.2334,
+    "Mid_FVU": 0.4917,
+    "LSD_dB": 12.65,
+    "Runtime_Sec": 68.05
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "IBM Granite TTM-R1",
+    "Architecture": "MLP-Mixer Foundation Model",
+    "Params": "805K",
+    "MSE": 0.6433,
+    "MAE": 0.4339,
+    "Mid_FVU": 0.6756,
+    "LSD_dB": 21.75,
+    "Runtime_Sec": 0.23
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "Amazon Chronos-T5",
+    "Architecture": "Discrete Tokenized T5 (AR)",
+    "Params": "8M",
+    "MSE": 1.9474,
+    "MAE": 0.5692,
+    "Mid_FVU": 1.9198,
+    "LSD_dB": 12.73,
+    "Runtime_Sec": 373.78
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "CycleNet (W=24)",
+    "Architecture": "Recurrent Periodic Queue",
+    "Params": "32K",
+    "MSE": 0.6437,
+    "MAE": 0.4608,
+    "Mid_FVU": 0.9661,
+    "LSD_dB": 9.93,
+    "Runtime_Sec": 1.92
+  }
+]

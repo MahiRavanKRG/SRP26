@@ -1,0 +1,25 @@
+{
+    "model": "cyclenet_linear",
+    "dataset": "weather",
+    "seq_len": 336,
+    "pred_len": 336,
+    "seed": 2024,
+    "mse": 0.256,
+    "mae": 0.2893,
+    "band_mse_low": 0.23642,
+    "band_mse_mid": 0.0167,
+    "band_mse_high": 0.00289,
+    "band_fvu_low": 1.6773,
+    "band_fvu_mid": 0.9958,
+    "band_fvu_high": 0.9973,
+    "energy_ratio_low": 0.8273,
+    "energy_ratio_mid": 0.0165,
+    "energy_ratio_high": 0.0118,
+    "lsd": 17.0816,
+    "periods_used": [
+        24
+    ],
+    "channel_dependence": true,
+    "failure_windows_flagged": 155511,
+    "training_time_sec": 37.2
+}

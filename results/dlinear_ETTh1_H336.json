@@ -1,0 +1,21 @@
+{
+    "model": "dlinear",
+    "dataset": "ETTh1.csv",
+    "seq_len": 336,
+    "pred_len": 336,
+    "mse": 0.5505130887031555,
+    "mae": 0.5421000719070435,
+    "band_mse_low": 0.46260829614392773,
+    "band_mse_mid": 0.07376406759988638,
+    "band_mse_high": 0.014140687231843571,
+    "band_fvu_low": 0.6097651288714067,
+    "band_fvu_mid": 0.8701271431028816,
+    "band_fvu_high": 1.2050594774956658,
+    "energy_ratio_low": 0.6129212999959086,
+    "energy_ratio_mid": 0.3003856250129875,
+    "energy_ratio_high": 0.24403160036212987,
+    "mean_coherence": 1.0,
+    "lsd": 11.152381896972656,
+    "alpha": null,
+    "failure_windows_flagged": 38152
+}

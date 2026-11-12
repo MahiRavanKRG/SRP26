@@ -1,0 +1,33 @@
+Dataset            : ETTh2SOR
+Data path          : C:\Users\phili\Desktop\Data Analytics\2 Semester\SRP\SOR\ETTh2SOR.csv
+Shape (T x C)      : (17420, 7)
+Device             : cuda
+Splits (rows)      : train=[0:8640) val=[8640:11520) test=[11520:14400)
+
+--- FFT period detection ---
+FFT candidate periods           : [24, 262, 320, 123]
+ACF-confirmed true periods       : [24, 123, 262, 320]
+ACF-rejected periods (noise)     : []
+ACF scores                       : {24: 0.7448, 262: 0.3269, 320: 0.1519, 123: 0.4253}
+
+--- Multi-cycle vs single-cycle decision ---
+Variance-reduction detail        : {'top_1': {'periods': [24], 'reduction_pct': 10.045}, 'top_2': {'periods': [24, 123], 'reduction_pct': 10.793}, 'top_3': {'periods': [24, 123, 262], 'reduction_pct': 12.391}}
+Decision                         : SINGLE-CYCLE (mode=auto)
+Periods used by model             : [24]
+
+--- Channel-dependence decision (residual path only) ---
+Correlation metrics               : {'avg_abs_pearson': 0.3488, 'avg_max_abs_corr': 0.4633, 'frac_max_corr_gt_05': 0.3333, 'num_channels': 7}
+Decision                          : CHANNEL-DEPENDENT residual (mode=auto)
+Reason                             : High channel dependence (avg|Pearson|=0.349, avg max|xcorr|=0.463, frac>0.5=0.333) - enabling a channel-mixing layer on the residual path.
+
+Config : seq_len=336, batch_size=32, model_type=sor, epochs(max)=30, patience=5, lr=0.001
+
+==========================================================================================
+  pred_len |        MSE |        MAE
+==========================================================================================
+        96 |     0.3118 |     0.3627
+       192 |     0.3594 |     0.3952
+       336 |     0.3994 |     0.4270
+       720 |     0.4338 |     0.4589
+------------------------------------------------------------------------------------------
+   AVERAGE |     0.3761 |     0.4109

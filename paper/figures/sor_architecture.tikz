@@ -1,0 +1,195 @@
+% Universal Colors for SORMixer diagram
+\providecolor{sorblue}{RGB}{24, 76, 120}
+\providecolor{sororange}{RGB}{214, 90, 49}
+\providecolor{sorgreen}{RGB}{46, 117, 89}
+\providecolor{sordark}{RGB}{45, 52, 54}
+\providecolor{sorlight}{RGB}{245, 246, 250}
+
+\begin{tikzpicture}[
+    >=stealth,
+    font=\footnotesize,
+    box/.style={draw, rounded corners=3pt, thick, align=center, inner sep=3.5pt, fill=white, font=\footnotesize},
+    input/.style={box, fill=blue!10, draw=sorblue!80, text width=3.4cm},
+    fold/.style={box, fill=cyan!12, draw=cyan!70!black, text width=3.4cm},
+    patch/.style={box, fill=teal!12, draw=teal!70!black, text width=3.4cm},
+    intra/.style={box, fill=orange!15, draw=sororange!80, text width=3.4cm},
+    pool/.style={box, fill=teal!18, draw=teal!80!black, text width=3.4cm},
+    film_node/.style={box, fill=purple!20, draw=purple!80!black, text width=3.4cm},
+    inter/.style={box, fill=yellow!30!orange!18, draw=sororange!90, text width=3.4cm},
+    head/.style={box, fill=cyan!18, draw=cyan!80!black, text width=3.4cm},
+    output/.style={box, fill=sorgreen!20, draw=sorgreen!80!black, text width=3.4cm},
+    spec/.style={box, fill=violet!12, draw=violet!70!black, text width=3.5cm},
+    detail/.style={draw=sordark!40, fill=sorlight, rounded corners=3pt, inner sep=4.5pt, font=\scriptsize, align=left}
+]
+
+% =========================================================================
+% COLUMN HEADERS (Generous spacing, aligned at y = 0.95)
+% =========================================================================
+\node[font=\bfseries\small, text=sorblue, anchor=center] at (2.0, 0.95) {(a) Residual Patch Backbone};
+\node[font=\bfseries\small, text=violet!85!black, anchor=center] at (7.3, 0.95) {(b) DCT-II Spectral FiLM};
+\node[font=\bfseries\small, text=sordark, anchor=center] at (12.2, 0.95) {(c) Inductive Biases};
+
+% =========================================================================
+% COLUMN 1: End-to-End Temporal Backbone Pipeline (centered at x = 2.0)
+% =========================================================================
+
+\node[input] (in_res) at (2.0, 0) {
+    \textbf{De-cycled Residual} $\mathbf{X}_{\text{res}}$\\
+    $[B, L, C]$ (from CycleNet-Pro)
+};
+
+\node[fold, below=0.35cm of in_res] (fold) {
+    \textbf{Channel-Indep.~Fold}\\
+    $\mathbf{X}_c = \text{reshape}(B \cdot C, L)$\\
+    \scriptsize Unshared channel-independent stream
+};
+
+\node[patch, below=0.45cm of fold] (unfold) {
+    \textbf{Patch Unfolding}\\
+    Unfold$(P, S) \to [B \cdot C, N, P]$\\
+    \scriptsize $N = \lfloor(L-P)/S\rfloor + 1$ patches
+};
+
+\node[patch, below=0.32cm of unfold] (embed) {
+    \textbf{Point Embedding}\\
+    Linear$(1 \to D)$\\
+    $\mathbf{H}_0 \in [B \cdot C, N, P, D]$
+};
+
+\node[intra, below=0.32cm of embed] (intra) {
+    \textbf{Intra-Patch Mixer} $(\times M)$\\
+    Time-MLP ($P \to 2P \to P$)\\
+    Feat-MLP ($D \to 2D \to D$) + Residual
+};
+
+\node[pool, below=0.32cm of intra] (pool) {
+    \textbf{Patch Token Pooling}\\
+    Flatten$(P, D) \to \text{Linear}(P D \to D)$\\
+    $\mathbf{H} \in [B \cdot C, N, D]$
+};
+
+\node[film_node, below=0.45cm of pool] (film) {
+    \textbf{FiLM Spectral Modulation}\\
+    $\mathbf{H}_{\text{cond}} = \mathbf{H} \odot (1 + \boldsymbol{\gamma}) + \boldsymbol{\beta}$\\
+    \scriptsize Token-wise affine broadcast
+};
+
+\node[inter, below=0.45cm of film] (inter) {
+    \textbf{Inter-Patch Mixer} $(\times M)$\\
+    Neighbor Gate: $[\mathbf{h}_{i-1}, \mathbf{h}_i, \mathbf{h}_{i+1}] \in 3D$\\
+    Sigmoid Gate + Feat-MLP\\
+    \scriptsize $\mathcal{O}(N)$ Translation-Equivariant
+};
+
+\node[head, below=0.45cm of inter] (head) {
+    \textbf{Residual Forecasting Head}\\
+    Linear$(N \cdot D \to D) \to \text{GELU}$\\
+    Linear$(D \to H) \to [B \cdot C, H]$
+};
+
+\node[output, below=0.45cm of head] (out_res) {
+    \textbf{Residual Forecast} $\hat{\mathbf{Y}}_{\text{res}}$\\
+    Reshape \& Permute $\to [B, H, C]$
+};
+
+% Connectors in Column 1
+\draw[->, thick, color=sorblue] (in_res) -- (fold);
+\draw[->, thick, color=teal!80!black] (fold) -- (unfold);
+\draw[->, thick, color=teal!80!black] (unfold) -- (embed);
+\draw[->, thick, color=teal!80!black] (embed) -- (intra);
+\draw[->, thick, color=sororange!90!black] (intra) -- (pool);
+\draw[->, thick, color=teal!80!black] (pool) -- (film);
+\draw[->, thick, color=purple!80!black] (film) -- (inter);
+\draw[->, thick, color=sororange!90!black] (inter) -- (head);
+\draw[->, thick, color=sorgreen!80!black] (head) -- (out_res);
+
+% =========================================================================
+% COLUMN 2: Orthonormal DCT-II FiLM Conditioning Branch (centered at x = 7.3)
+% =========================================================================
+
+\node[spec] (dct) at (7.3, -2.15) {
+    \textbf{Orthonormal DCT-II}\\
+    $\mathbf{C}_{\text{dct}} = \mathbf{X}_c \mathbf{D}^T \in [B \cdot C, L]$\\
+    \scriptsize Real-valued energy compaction
+};
+
+\node[spec, below=0.32cm of dct] (logpower) {
+    \textbf{Log-Power Energy}\\
+    $\mathbf{S} = \log(1 + \mathbf{C}_{\text{dct}}^2) \in [B \cdot C, L]$\\
+    \scriptsize Suppresses high-amplitude outlier spikes
+};
+
+\node[spec, below=0.32cm of logpower] (bandpool) {
+    \textbf{Subband Energy Pooling}\\
+    Partition $L$ into $K$ bands ($K=4$)\\
+    $\bar{\mathbf{s}} = [\text{mean}(\mathbf{S}_{k})]_{k=1}^K \in [B \cdot C, K]$
+};
+
+\node[spec, below=0.32cm of bandpool] (film_mlp) {
+    \textbf{FiLM Parameter Generator}\\
+    Linear$(K \to \text{hidden}) \to \text{GELU}$\\
+    Linear$(\text{hidden} \to 2D)$\\
+    $\implies (\boldsymbol{\gamma}, \boldsymbol{\beta}) \in [B \cdot C, D]$ each
+};
+
+% Container box around spectral modules
+\node[draw=violet!60!black, dashed, thick, rounded corners=4pt, fit=(dct) (logpower) (bandpool) (film_mlp), inner sep=5pt] (spec_box) {};
+
+% Identity Guarantee Box
+\node[draw=purple!60!black, fill=purple!5, rounded corners=3pt, font=\scriptsize, align=center, below=0.35cm of spec_box, text width=3.5cm] (zero_card) {
+    \textbf{Zero-Init Identity Guarantee}\\
+    Last linear layer has $\mathbf{W}=\mathbf{0}, \mathbf{b}=\mathbf{0}$\\
+    $\implies (\boldsymbol{\gamma}, \boldsymbol{\beta}) = (\mathbf{0}, \mathbf{0})$ at step 0\\
+    $\mathbf{H} \odot (1 + \mathbf{0}) + \mathbf{0} \equiv \mathbf{H}$ (Pure Identity!)\\
+    \textit{Activates strictly if improving loss.}
+};
+
+% Connectors in Column 2
+\draw[->, thick, color=violet!80!black] (dct) -- (logpower);
+\draw[->, thick, color=violet!80!black] (logpower) -- (bandpool);
+\draw[->, thick, color=violet!80!black] (bandpool) -- (film_mlp);
+
+% Branching Connector: Fold -> DCT-II (enters from west cleanly without cutting label)
+\draw[->, thick, color=violet!80!black] (fold.east) -- ++(1.4, 0) node[pos=0.45, above=1pt, font=\scriptsize, text=violet!90!black] {$\mathbf{X}_c \in [B \cdot C, L]$} |- (dct.west);
+
+% Modulation Connector: FiLM MLP -> FiLM Node (exits west cleanly into film.east)
+\draw[->, thick, color=purple!90!black] (film_mlp.west) -- ++(-1.4, 0) node[pos=0.45, above=1pt, font=\scriptsize, text=purple!90!black] {$(\boldsymbol{\gamma}, \boldsymbol{\beta}) \in [B \cdot C, D]$} |- (film.east);
+
+% =========================================================================
+% COLUMN 3: Architectural Inductive Biases (centered at x = 12.2)
+% =========================================================================
+
+% Card 1: Intra-Patch Mixing
+\node[detail, text width=4.5cm] (card_intra) at (12.2, -1.8) {
+    \textbf{1. Intra-Patch Shape Modeling:}\\
+    $\bullet$ Operates strictly within each patch token.\\
+    $\bullet$ \textbf{Time-MLP}: mixes across $P$ samples\\
+    \phantom{$\bullet$} $(P \to 2P \to P)$ + residual connection.\\
+    $\bullet$ \textbf{Feature-MLP}: mixes across $D$ embedding dims\\
+    \phantom{$\bullet$} $(D \to 2D \to D)$ + residual connection.\\
+    $\bullet$ Preserves local translation equivariance.
+};
+
+% Card 2: Neighbor-Gated Inter-Patch Mixing
+\node[detail, below=0.45cm of card_intra, text width=4.5cm] (card_inter) {
+    \textbf{2. Neighbor-Gated Inter-Patch Mixing:}\\
+    $\bullet$ Local 3-patch context: $[\mathbf{h}_{i-1}, \mathbf{h}_i, \mathbf{h}_{i+1}] \in \mathbb{R}^{3D}$.\\
+    $\bullet$ Non-linear candidate: $\mathbf{c}_i = \text{MLP}_{3D \to D}([\dots])$.\\
+    $\bullet$ Dynamic gating: $g_i = \sigma(\mathbf{W}_g \mathbf{h}_i) \in [0, 1]$.\\
+    $\bullet$ Convex blend: $\mathbf{h}_i \leftarrow g_i \odot \mathbf{c}_i + (1 - g_i) \odot \mathbf{h}_i$.\\
+    $\bullet$ Learns to become exact no-op if uninformative.\\
+    $\bullet$ \textbf{Linear scaling}: $\mathcal{O}(N)$ vs.~$\mathcal{O}(N^2)$ Transformer!
+};
+
+% Card 3: Boundary Robustness & Parameter Efficiency
+\node[detail, below=0.45cm of card_inter, text width=4.5cm] (card_eff) {
+    \textbf{3. Lightweight Efficiency \& Shield:}\\
+    $\bullet$ \textbf{Total footprint}: $\sim \mathbf{100\text{k}}$ parameters\\
+    \phantom{$\bullet$} ($10\times$ smaller than PatchTST, $50\times$ vs.~iTrans).\\
+    $\bullet$ Linear bottleneck head eliminates heavy fold layer.\\
+    $\bullet$ Orthonormal DCT-II avoids phase distortion.\\
+    $\bullet$ Channel-independent residual backbone avoids\\
+    \phantom{$\bullet$} noisy spurious cross-variable co-adaptation.
+};
+
+\end{tikzpicture}

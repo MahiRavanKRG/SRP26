@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=bm_ETTh2_H720_s2026
+#SBATCH --output=logs/bm_ETTh2_H720_s2026_%j.out
+#SBATCH --error=logs/bm_ETTh2_H720_s2026_%j.err
+#SBATCH --partition=STUD
+#SBATCH --gres=gpu:1
+#SBATCH --mem=32G
+#SBATCH --cpus-per-task=4
+#SBATCH --time=04:00:00
+
+# Environment setup
+export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
+mkdir -p "$HF_HOME"
+mkdir -p logs results/cluster_results
+
+echo "=========================================================="
+echo " Starting Job: bm_ETTh2_H720_s2026 on $(hostname)"
+echo " GPU: $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader)"
+echo " Date: $(date)"
+echo "=========================================================="
+
+# Run benchmark inside cluster virtualenv
+.venv/bin/python3 run_bigmama_benchmark.py \
+    --dataset ETTh2.csv \
+    --pred_len 720 \
+    --seed 2026 \
+    --full_test \
+    --output_dir results/cluster_results
+
+echo "Job bm_ETTh2_H720_s2026 finished at $(date) with exit code $?"

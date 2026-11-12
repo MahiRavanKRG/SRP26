@@ -1,0 +1,152 @@
+[
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "TimesFM-Raw (Zero-Shot)",
+    "Params": "200M",
+    "MSE": 0.4601,
+    "MAE": 0.4151,
+    "Mid_FVU": 0.6283,
+    "LSD_dB": 17.23,
+    "Runtime_Sec": 1.33
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "FTimesFM (Fourier+TimesFM)",
+    "Params": "200M",
+    "MSE": 0.5318,
+    "MAE": 0.4847,
+    "Mid_FVU": 0.6664,
+    "LSD_dB": 16.86,
+    "Runtime_Sec": 0.43
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "Chronos-Raw (Zero-Shot)",
+    "Params": "8M",
+    "MSE": 1.1036,
+    "MAE": 0.5775,
+    "Mid_FVU": 2.7592,
+    "LSD_dB": 11.32,
+    "Runtime_Sec": 2.71
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "FCMath (Fourier+Chronos)",
+    "Params": "8M",
+    "MSE": 0.7456,
+    "MAE": 0.5264,
+    "Mid_FVU": 1.3435,
+    "LSD_dB": 15.36,
+    "Runtime_Sec": 2.29
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Model": "CycleNet (W=24)",
+    "Params": "32K",
+    "MSE": 0.6159,
+    "MAE": 0.5344,
+    "Mid_FVU": 1.4015,
+    "LSD_dB": 10.05,
+    "Runtime_Sec": 0.38
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "TimesFM-Raw (Zero-Shot)",
+    "Params": "200M",
+    "MSE": 0.1895,
+    "MAE": 0.1914,
+    "Mid_FVU": 0.9794,
+    "LSD_dB": 18.73,
+    "Runtime_Sec": 1.78
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "FTimesFM (Fourier+TimesFM)",
+    "Params": "200M",
+    "MSE": 0.3266,
+    "MAE": 0.3437,
+    "Mid_FVU": 1.0134,
+    "LSD_dB": 18.18,
+    "Runtime_Sec": 1.38
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "Chronos-Raw (Zero-Shot)",
+    "Params": "8M",
+    "MSE": 0.5993,
+    "MAE": 0.3186,
+    "Mid_FVU": 8.4595,
+    "LSD_dB": 22.78,
+    "Runtime_Sec": 4.85
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "FCMath (Fourier+Chronos)",
+    "Params": "8M",
+    "MSE": 0.6509,
+    "MAE": 0.3849,
+    "Mid_FVU": 3.4215,
+    "LSD_dB": 24.45,
+    "Runtime_Sec": 4.02
+  },
+  {
+    "Dataset": "weather.csv",
+    "Model": "CycleNet (W=24)",
+    "Params": "32K",
+    "MSE": 0.2353,
+    "MAE": 0.2762,
+    "Mid_FVU": 1.6518,
+    "LSD_dB": 20.21,
+    "Runtime_Sec": 0.35
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "TimesFM-Raw (Zero-Shot)",
+    "Params": "200M",
+    "MSE": 0.3511,
+    "MAE": 0.226,
+    "Mid_FVU": 0.4772,
+    "LSD_dB": 12.04,
+    "Runtime_Sec": 45.78
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "FTimesFM (Fourier+TimesFM)",
+    "Params": "200M",
+    "MSE": 0.4931,
+    "MAE": 0.3523,
+    "Mid_FVU": 0.5376,
+    "LSD_dB": 13.4,
+    "Runtime_Sec": 46.64
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "Chronos-Raw (Zero-Shot)",
+    "Params": "8M",
+    "MSE": 1.9127,
+    "MAE": 0.5641,
+    "Mid_FVU": 1.833,
+    "LSD_dB": 12.69,
+    "Runtime_Sec": 108.53
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "FCMath (Fourier+Chronos)",
+    "Params": "8M",
+    "MSE": 1.2292,
+    "MAE": 0.5328,
+    "Mid_FVU": 1.2393,
+    "LSD_dB": 12.99,
+    "Runtime_Sec": 107.78
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Model": "CycleNet (W=24)",
+    "Params": "32K",
+    "MSE": 0.6437,
+    "MAE": 0.4608,
+    "Mid_FVU": 0.9661,
+    "LSD_dB": 9.93,
+    "Runtime_Sec": 1.6
+  }
+]

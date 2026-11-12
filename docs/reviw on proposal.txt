@@ -1,0 +1,17 @@
+I would like to share some feedback about the project.
+
+1. I agree with the professor's opinion that research on frequency domain is very broad. It would be good if we concentrate on building a model with some frequency domain research.
+
+2. As the professor said, doing an analysis on frequency domain error (e.g) measuring MSE on frequency domain) would be good analysis.
+
+3. We do not need to reproduce the published results. I understand you wanted to try to run the code, but we should use the published results. 
+
+4. We need more papers using frequency domain. You can take a look at WPMixer, Fedformer and so on.
+
+5. SimpleTM is also a good model that we can work on, but it would be also nice if we work on a model that does not originally work on frequency domain.
+
+6. We should not focus on preprocessing parts of the time series forecasting. Make datasets adapt to the frequency domain might not be enough for the SRP. 
+
+7. I still do not get how the cross-architecture idea works.
+
+8. We need to understand more in detail how the metrics that we want to use mathematically.

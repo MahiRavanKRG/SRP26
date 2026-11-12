@@ -1,0 +1,25 @@
+{
+    "model": "cyclenet_linear",
+    "dataset": "ETTm1",
+    "seq_len": 336,
+    "pred_len": 96,
+    "seed": 2024,
+    "mse": 0.3124,
+    "mae": 0.3588,
+    "band_mse_low": 0.28703,
+    "band_mse_mid": 0.02087,
+    "band_mse_high": 0.00455,
+    "band_fvu_low": 0.5154,
+    "band_fvu_mid": 1.0632,
+    "band_fvu_high": 1.1404,
+    "energy_ratio_low": 0.8166,
+    "energy_ratio_mid": 0.1551,
+    "energy_ratio_high": 0.1706,
+    "lsd": 11.0064,
+    "periods_used": [
+        48
+    ],
+    "channel_dependence": true,
+    "failure_windows_flagged": 47274,
+    "training_time_sec": 22.42
+}

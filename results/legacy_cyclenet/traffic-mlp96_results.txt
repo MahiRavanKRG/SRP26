@@ -1,0 +1,25 @@
+Dataset            : traffic-CNN
+Data path          : C:/Users/USER/Downloads/traffic.csv
+Shape (T x C)      : (17544, 862)
+Device             : cuda
+Splits (rows)      : train=[0:12280) val=[12280:14035) test=[14035:17544)
+
+--- FFT period detection ---
+FFT candidate periods           : [24, 12, 8, 168]
+ACF-confirmed true periods       : [168, 24, 12, 8]
+ACF-rejected periods (noise)     : []
+ACF scores                       : {24: 0.8691, 12: -0.5008, 8: -0.2362, 168: 0.9439}
+
+--- Multi-cycle vs single-cycle decision ---
+Variance-reduction detail        : {'top_1': {'periods': [168], 'reduction_pct': 58.428}, 'top_2': {'periods': [168, 24], 'reduction_pct': 63.85}, 'top_3': {'periods': [168, 24, 12], 'reduction_pct': 63.85}}
+Decision                         : MULTI-CYCLE (mode=auto)
+Periods used by model             : [168, 24]
+
+Config : seq_len=336, batch_size=32, model_type=mlp, d_model=512, epochs(max)=30, patience=5, lr=0.001, seed=2024
+
+==========================================================================================
+  pred_len |        MSE |        MAE |    #params
+==========================================================================================
+        96 |     0.3976 |     0.2756 |    389,020
+------------------------------------------------------------------------------------------
+   AVERAGE |     0.3976 |     0.2756

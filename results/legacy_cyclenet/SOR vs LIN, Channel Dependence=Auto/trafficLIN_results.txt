@@ -1,0 +1,33 @@
+Dataset            : trafficLIN
+Data path          : C:\Users\phili\Desktop\Data Analytics\2 Semester\SRP\Linear\trafficLIN.csv
+Shape (T x C)      : (17544, 862)
+Device             : cuda
+Splits (rows)      : train=[0:12280) val=[12280:14035) test=[14035:17544)
+
+--- FFT period detection ---
+FFT candidate periods           : [24, 12, 8, 168]
+ACF-confirmed true periods       : [168, 24, 12, 8]
+ACF-rejected periods (noise)     : []
+ACF scores                       : {24: 0.8691, 12: -0.5008, 8: -0.2362, 168: 0.9439}
+
+--- Multi-cycle vs single-cycle decision ---
+Variance-reduction detail        : {'top_1': {'periods': [168], 'reduction_pct': 58.428}, 'top_2': {'periods': [168, 24], 'reduction_pct': 63.85}, 'top_3': {'periods': [168, 24, 12], 'reduction_pct': 63.85}}
+Decision                         : MULTI-CYCLE (mode=auto)
+Periods used by model             : [168, 24]
+
+--- Channel-dependence decision (residual path only) ---
+Correlation metrics               : {'avg_abs_pearson': 0.5789, 'avg_max_abs_corr': 0.6195, 'frac_max_corr_gt_05': 0.7833, 'num_channels': 862}
+Decision                          : CHANNEL-DEPENDENT residual (mode=auto)
+Reason                             : High channel dependence (avg|Pearson|=0.579, avg max|xcorr|=0.620, frac>0.5=0.783) - enabling a channel-mixing layer on the residual path.
+
+Config : seq_len=336, batch_size=32, model_type=linear, epochs(max)=30, patience=5, lr=0.001
+
+==========================================================================================
+  pred_len |        MSE |        MAE
+==========================================================================================
+        96 |     0.4178 |     0.3037
+       192 |     0.4376 |     0.3135
+       336 |     0.4586 |     0.3259
+       720 |     0.4803 |     0.3452
+------------------------------------------------------------------------------------------
+   AVERAGE |     0.4486 |     0.3221

@@ -1,0 +1,33 @@
+Dataset            : weatherSOR
+Data path          : C:\Users\phili\Desktop\Data Analytics\2 Semester\SRP\SOR\weatherSOR.csv
+Shape (T x C)      : (52696, 21)
+Device             : cuda
+Splits (rows)      : train=[0:36887) val=[36887:42156) test=[42156:52696)
+
+--- FFT period detection ---
+FFT candidate periods           : [144, 72, 120]
+ACF-confirmed true periods       : [144, 72, 120]
+ACF-rejected periods (noise)     : []
+ACF scores                       : {144: 0.689, 72: -0.3842, 120: 0.323}
+
+--- Multi-cycle vs single-cycle decision ---
+Variance-reduction detail        : {'top_1': {'periods': [144], 'reduction_pct': 38.971}, 'top_2': {'periods': [144, 72], 'reduction_pct': 38.975}, 'top_3': {'periods': [144, 72, 120], 'reduction_pct': 39.226}}
+Decision                         : SINGLE-CYCLE (mode=auto)
+Periods used by model             : [144]
+
+--- Channel-dependence decision (residual path only) ---
+Correlation metrics               : {'avg_abs_pearson': 0.2944, 'avg_max_abs_corr': 0.4172, 'frac_max_corr_gt_05': 0.3905, 'num_channels': 21}
+Decision                          : CHANNEL-DEPENDENT residual (mode=auto)
+Reason                             : High channel dependence (avg|Pearson|=0.294, avg max|xcorr|=0.417, frac>0.5=0.391) - enabling a channel-mixing layer on the residual path.
+
+Config : seq_len=336, batch_size=32, model_type=sor, epochs(max)=30, patience=5, lr=0.001
+
+==========================================================================================
+  pred_len |        MSE |        MAE
+==========================================================================================
+        96 |     0.1506 |     0.2103
+       192 |     0.2007 |     0.2571
+       336 |     0.2566 |     0.2956
+       720 |     0.3333 |     0.3525
+------------------------------------------------------------------------------------------
+   AVERAGE |     0.2353 |     0.2789

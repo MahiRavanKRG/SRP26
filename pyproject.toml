@@ -1,0 +1,45 @@
+[project]
+name = "srp26"
+version = "0.1.0"
+description = "Spectral decomposition, Parseval diagnostics, and lightweight multivariate time series forecasting benchmarks (CycleNet, DLinear, Fourier-residual models)."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "chronos-forecasting>=2.3.2",
+    "dill>=0.4.0",
+    "lightning>=2.6.6",
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.4",
+    "pandas>=3.0.2",
+    "peft>=0.21.2",
+    "ptwt>=1.0.1",
+    "pypdf>=6.19.0",
+    "pywavelets>=1.9.0",
+    "reportlab>=4.5.0",
+    "requests>=2.33.1",
+    "scikit-learn>=1.8.0",
+    "scipy>=1.17.1",
+    "tabulate>=0.10.0",
+    "torch>=2.0.0",
+    "wandb>=0.30.0",
+]
+
+[project.optional-dependencies]
+cluster = ["paramiko>=3.5.0"]
+foundation = ["accelerate>=1.0.0", "transformers>=4.45.0"]
+dev = ["pytest>=8.0.0"]
+
+[tool.setuptools.packages.find]
+include = ["srp26*", "models*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cuda" }

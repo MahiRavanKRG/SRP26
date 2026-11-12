@@ -1,0 +1,56 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+
+# Virtual environments
+.venv/
+
+# Raw benchmark datasets (re-fetch with `uv run python data_sets/download_data.py`)
+data_sets/*.csv
+data_sets/*.txt
+data_sets/*.gz
+data_sets/*.zip
+!data_sets/download_data.py
+data/*.csv
+data/*.txt
+
+# Experiment run logs & local tracking
+wandb/
+wandb_logs/
+lightning_logs/
+logs/
+*.err
+srp26.egg-info/
+
+# Personal session logs & local archives (excluded from GitHub)
+.ai_history/
+_local_archive/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.nav
+*.snm
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets & Credentials (NEVER COMMIT)
+.env
+*.secret*
+*credentials*
+bigmama_credentials.json

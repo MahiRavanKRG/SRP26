@@ -1,0 +1,113 @@
+\begin{tikzpicture}[
+    >=stealth,
+    node distance=0.55cm and 0.55cm,
+    font=\small,
+    box/.style={draw, rounded corners=3pt, thick, align=center, inner sep=3.5pt, fill=white, font=\small},
+    input/.style={box, fill=blue!10, text width=2.1cm},
+    proc/.style={box, fill=teal!15, text width=2.2cm},
+    period/.style={box, fill=purple!15, text width=2.3cm, font=\footnotesize},
+    queue/.style={box, fill=yellow!30!orange!20, text width=2.3cm, font=\footnotesize},
+    bb_node/.style={box, fill=cyan!15, text width=2.5cm, font=\footnotesize},
+    mixer/.style={box, fill=orange!20, text width=2.2cm, font=\footnotesize},
+    output/.style={box, fill=green!15, text width=2.1cm},
+    diag/.style={box, fill=violet!12, text width=2.9cm, font=\footnotesize}
+]
+
+% =========================================================================
+% PANEL (A): Proposed Architecture: Automated CycleNet (CycleNet-Pro)
+% =========================================================================
+\begin{scope}[local bounding box=panel_a]
+    % Title centered above Column (A)
+    \node[font=\bfseries\small, text=black!90, anchor=center] (title_a) at (3.0, 0.2) {(a) Automated CycleNet (CycleNet-Pro)};
+
+    % Main vertical sequence (centered at x = 3.0cm)
+    \node[input, below=0.5cm of title_a, anchor=center] (in) {Input $\mathbf{X}$\\$[B, L, C]$};
+    \node[proc, below=0.45cm of in] (revin) {RevIN\\Norm};
+
+    % Left: Periodic Branch
+    \node[period, below left=0.65cm and 0.15cm of revin] (period_det) {Automated Period\\Discovery (FFT+ACF)\\Extract $\{p_1, \dots, p_K\}$};
+    \node[queue, below=0.55cm of period_det] (cycle_q) {Recurrent Cycle\\Queues $\mathbf{Q}^{(k)}(\tau)$\\De-cycle \& Extrapolate};
+
+    % Right: Modular Residual Backbones
+    \node[bb_node, below right=0.65cm and 0.15cm of revin] (bb_lin) {\textbf{Linear / MLP}\\$\mathbf{W}: L \to H$};
+    \node[bb_node, below=0.22cm of bb_lin] (bb_cnn) {\textbf{1D-CNN Backbone}\\Conv1D + Interp};
+    \node[bb_node, below=0.22cm of bb_cnn] (bb_sor) {\textbf{SCPM (SOR)}\\Patch Mixer + FiLM DCT};
+
+    % Dashed box around backbones
+    \node[draw=cyan!75!black, dashed, thick, rounded corners=4pt, fit=(bb_lin) (bb_cnn) (bb_sor), inner sep=3.5pt] (bb_box) {};
+    \node[font=\scriptsize\bfseries, text=cyan!70!black, anchor=south, fill=white, inner sep=1pt] at (bb_box.north) {Modular Backbones};
+
+    % Merging Point
+    \path (cycle_q.south) -- (bb_box.south) coordinate[midway] (merge_mid);
+    
+    \node[mixer, below=0.65cm of merge_mid] (add_node) {Additive Re-compose\\$\mathbf{Y}_{\text{res}} + \mathbf{Y}_{\text{cycle}}$};
+    \node[mixer, below=0.45cm of add_node] (chan_mix) {Adaptive Channel\\Mixer (MLP Gate)};
+    \node[proc, below=0.45cm of chan_mix] (denorm) {RevIN\\Denorm};
+    \node[output, below=0.45cm of denorm] (out) {Forecast $\hat{\mathbf{Y}}$\\$[B, H, C]$};
+
+    % Panel (A) Connectors
+    \draw[->, thick] (in) -- (revin);
+    
+    % Flow to Periodic Branch
+    \draw[->, thick] (revin) -| (period_det.north);
+    \draw[->, thick] (period_det) -- (cycle_q) node[midway, right] {\scriptsize $\{p_k\}$};
+    
+    % Flow to Residual Branch
+    \draw[->, thick] (revin) -| (bb_box.north) node[near start, above] {\scriptsize $\mathbf{X}_{\text{res}}$};
+    
+    % Flow to Re-composition
+    \draw[->, thick] (cycle_q.south) |- (add_node.west) node[near start, left] {\scriptsize $\mathbf{Y}_{\text{cycle}}$};
+    \draw[->, thick] (bb_box.south) |- (add_node.east) node[near start, right] {\scriptsize $\mathbf{Y}_{\text{res}}$};
+    
+    \draw[->, thick] (add_node) -- (chan_mix);
+    \draw[->, thick] (chan_mix) -- (denorm);
+    \draw[->, thick] (denorm) -- (out);
+\end{scope}
+
+% =========================================================================
+% PANEL (B): Diagnostic Framework: DSOF Parseval Spectral Decomposition
+% =========================================================================
+\begin{scope}[shift={(8.0, 0)}, local bounding box=panel_b]
+    % Title centered above Column (B) with clear horizontal clearance from Title (A)
+    \node[font=\bfseries\small, text=black!90, anchor=center] (title_b) at (3.2, 0.2) {(b) DSOF Parseval Spectral Diagnostics};
+
+    % Inputs at top
+    \node[input, below=0.5cm of title_b, xshift=-1.3cm, anchor=center] (gt) {Ground Truth $\mathbf{Y}$\\$[B, H, C]$};
+    \node[output, right=0.4cm of gt] (pred) {Forecast $\hat{\mathbf{Y}}$\\$[B, H, C]$};
+
+    \path (gt) -- (pred) coordinate[midway] (input_mid);
+
+    % Error sequence & rFFT
+    \node[proc, below=0.55cm of input_mid] (err) {Error Vector\\$\mathbf{e} = \mathbf{Y} - \hat{\mathbf{Y}}$};
+    \node[period, below=0.45cm of err, text width=2.3cm] (rfft) {One-Sided rFFT\\$E(k) = \mathcal{F}\{\mathbf{e}\}$};
+
+    % Vertically Stacked Physical Subbands with generous 1.5cm clearance below rFFT
+    \node[diag, below=1.5cm of rfft] (low) {\textbf{Low-Band} ($T \ge 10\text{h}$)\\Macro Trend \& Baseline Drift\\$\text{MSE}_{\text{low}}, FVU_{\text{low}}$};
+    \node[diag, below=0.32cm of low] (mid) {\textbf{Mid-Band} ($2.5 \le T < 10\text{h}$)\\Harmonic Periodic Cycles\\$\text{MSE}_{\text{mid}}, FVU_{\text{mid}}$};
+    \node[diag, below=0.32cm of mid] (high) {\textbf{High-Band} ($T < 2.5\text{h}$)\\Stochastic Micro-Noise\\$\text{MSE}_{\text{high}}, FVU_{\text{high}}$};
+
+    % Enclosing box for Subbands
+    \node[draw=violet!60!black, dashed, thick, rounded corners=4pt, fit=(low) (mid) (high), inner sep=4.5pt] (subband_box) {};
+    
+    % Group Label cleanly wrapped on two lines without touching the incoming arrow
+    \node[font=\scriptsize\bfseries, text=violet!80!black, align=center, text width=2.5cm, anchor=south, fill=white, inner sep=2pt] at (subband_box.north) {Parseval Energy\\Partitioning};
+
+    % Diagnostic Output Summary
+    \node[proc, below=0.55cm of subband_box, text width=3.0cm, font=\footnotesize] (diag_out) {
+        \textbf{Exact Conservation:}\\
+        $\text{MSE}_{\text{total}} \equiv \sum \text{MSE}_{\text{band}}$\\[2pt]
+        \textbf{Log-Spectral Dist.~(LSD)}\\[2pt]
+        \textbf{Failure Localization}
+    };
+
+    % Panel (B) Connectors
+    \draw[->, thick] (gt) |- (err);
+    \draw[->, thick] (pred) |- (err);
+    \draw[->, thick] (err) -- (rfft);
+    
+    % Arrow entering subband box cleanly
+    \draw[->, thick] (rfft.south) -- (subband_box.north);
+    \draw[->, thick] (subband_box.south) -- (diag_out);
+\end{scope}
+
+\end{tikzpicture}

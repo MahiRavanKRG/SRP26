@@ -1,0 +1,38 @@
+[
+  {
+    "Model": "Chronos-Raw (chronos-t5-tiny)",
+    "Type": "Pure Foundation Model",
+    "MSE": 0.4662,
+    "MAE": 0.4136,
+    "Mid_FVU": 1.0831,
+    "LSD_dB": 16.27,
+    "Inference_Sec": 18.7
+  },
+  {
+    "Model": "FCMath (Standard)",
+    "Type": "Fourier Base + Chronos",
+    "MSE": 0.4141,
+    "MAE": 0.4225,
+    "Mid_FVU": 0.9167,
+    "LSD_dB": 15.63,
+    "Inference_Sec": 10.8
+  },
+  {
+    "Model": "FCMath-Tuned (Trend+Fourier)",
+    "Type": "Trend-Fourier Base + Chronos",
+    "MSE": 0.3965,
+    "MAE": 0.4259,
+    "Mid_FVU": 1.012,
+    "LSD_dB": 16.47,
+    "Inference_Sec": 11.17
+  },
+  {
+    "Model": "CycleNet (W=24)",
+    "Type": "Ultra-Lightweight Queue",
+    "MSE": 0.2769,
+    "MAE": 0.3479,
+    "Mid_FVU": 0.6316,
+    "LSD_dB": 12.84,
+    "Inference_Sec": 28.72
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "Model": "Chronos-Raw (Zero-Shot)",
+    "MSE": 0.9816,
+    "MAE": 0.4375,
+    "Mid_FVU": 1.0568,
+    "LSD_dB": 16.27,
+    "Runtime": "350.86s",
+    "Notes": "Raw foundation model without decomposition"
+  },
+  {
+    "Model": "FCMath (Zero-Shot)",
+    "MSE": 0.6755,
+    "MAE": 0.3613,
+    "Mid_FVU": 0.9804,
+    "LSD_dB": 14.22,
+    "Runtime": "351.13s",
+    "Notes": "Fourier base + Zero-Shot Chronos residuals"
+  },
+  {
+    "Model": "FCMath (LoRA Fine-Tuned)",
+    "MSE": 0.9405,
+    "MAE": 0.4458,
+    "Mid_FVU": 1.0705,
+    "LSD_dB": 13.17,
+    "Runtime": "122.1s",
+    "Notes": "LoRA adapter (r=8) trained on Traffic residuals"
+  },
+  {
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.5263,
+    "MAE": 0.3908,
+    "Mid_FVU": 0.9246,
+    "LSD_dB": 9.74,
+    "Runtime": "1.86s",
+    "Notes": "Ultra-lightweight recurrent periodic queue (32k params)"
+  }
+]

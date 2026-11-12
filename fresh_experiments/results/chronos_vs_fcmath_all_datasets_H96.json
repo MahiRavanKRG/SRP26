@@ -1,0 +1,242 @@
+[
+  {
+    "Dataset": "ETTh1.csv",
+    "Channels": 7,
+    "Model": "Chronos-Raw",
+    "MSE": 0.5208,
+    "MAE": 0.4412,
+    "Mid_FVU": 1.0795,
+    "LSD_dB": 17.67,
+    "Time_s": 20.57
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Channels": 7,
+    "Model": "FCMath (Standard)",
+    "MSE": 0.4083,
+    "MAE": 0.4239,
+    "Mid_FVU": 0.9248,
+    "LSD_dB": 16.13,
+    "Time_s": 6.91
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Channels": 7,
+    "Model": "FCMath-Tuned",
+    "MSE": 0.3925,
+    "MAE": 0.4303,
+    "Mid_FVU": 1.0076,
+    "LSD_dB": 16.4,
+    "Time_s": 7.41
+  },
+  {
+    "Dataset": "ETTh1.csv",
+    "Channels": 7,
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.4705,
+    "MAE": 0.4881,
+    "Mid_FVU": 1.4686,
+    "LSD_dB": 9.94,
+    "Time_s": 0.35
+  },
+  {
+    "Dataset": "ETTh2.csv",
+    "Channels": 7,
+    "Model": "Chronos-Raw",
+    "MSE": 0.102,
+    "MAE": 0.2009,
+    "Mid_FVU": 1.0709,
+    "LSD_dB": 23.78,
+    "Time_s": 6.49
+  },
+  {
+    "Dataset": "ETTh2.csv",
+    "Channels": 7,
+    "Model": "FCMath (Standard)",
+    "MSE": 0.1514,
+    "MAE": 0.2643,
+    "Mid_FVU": 1.0523,
+    "LSD_dB": 21.84,
+    "Time_s": 7.37
+  },
+  {
+    "Dataset": "ETTh2.csv",
+    "Channels": 7,
+    "Model": "FCMath-Tuned",
+    "MSE": 0.1455,
+    "MAE": 0.2615,
+    "Mid_FVU": 1.029,
+    "LSD_dB": 23.39,
+    "Time_s": 6.51
+  },
+  {
+    "Dataset": "ETTh2.csv",
+    "Channels": 7,
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.0903,
+    "MAE": 0.2116,
+    "Mid_FVU": 1.5931,
+    "LSD_dB": 21.01,
+    "Time_s": 0.2
+  },
+  {
+    "Dataset": "weather.csv",
+    "Channels": 21,
+    "Model": "Chronos-Raw",
+    "MSE": 0.2108,
+    "MAE": 0.2788,
+    "Mid_FVU": 0.9753,
+    "LSD_dB": 21.63,
+    "Time_s": 39.94
+  },
+  {
+    "Dataset": "weather.csv",
+    "Channels": 21,
+    "Model": "FCMath (Standard)",
+    "MSE": 0.4131,
+    "MAE": 0.4278,
+    "Mid_FVU": 1.0771,
+    "LSD_dB": 20.18,
+    "Time_s": 8.66
+  },
+  {
+    "Dataset": "weather.csv",
+    "Channels": 21,
+    "Model": "FCMath-Tuned",
+    "MSE": 0.3105,
+    "MAE": 0.3676,
+    "Mid_FVU": 1.0211,
+    "LSD_dB": 21.21,
+    "Time_s": 8.64
+  },
+  {
+    "Dataset": "weather.csv",
+    "Channels": 21,
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.2357,
+    "MAE": 0.3271,
+    "Mid_FVU": 1.6036,
+    "LSD_dB": 22.8,
+    "Time_s": 0.34
+  },
+  {
+    "Dataset": "electricity.csv",
+    "Channels": 321,
+    "Model": "Chronos-Raw",
+    "MSE": 0.2752,
+    "MAE": 0.3297,
+    "Mid_FVU": 0.8703,
+    "LSD_dB": 12.64,
+    "Time_s": 130.68
+  },
+  {
+    "Dataset": "electricity.csv",
+    "Channels": 321,
+    "Model": "FCMath (Standard)",
+    "MSE": 0.1885,
+    "MAE": 0.2904,
+    "Mid_FVU": 0.8217,
+    "LSD_dB": 13.59,
+    "Time_s": 130.0
+  },
+  {
+    "Dataset": "electricity.csv",
+    "Channels": 321,
+    "Model": "FCMath-Tuned",
+    "MSE": 0.2019,
+    "MAE": 0.3047,
+    "Mid_FVU": 0.8071,
+    "LSD_dB": 14.73,
+    "Time_s": 130.86
+  },
+  {
+    "Dataset": "electricity.csv",
+    "Channels": 321,
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.1808,
+    "MAE": 0.3002,
+    "Mid_FVU": 0.9762,
+    "LSD_dB": 9.57,
+    "Time_s": 0.73
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Channels": 862,
+    "Model": "Chronos-Raw",
+    "MSE": 0.9816,
+    "MAE": 0.4375,
+    "Mid_FVU": 1.0568,
+    "LSD_dB": 16.27,
+    "Time_s": 350.86
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Channels": 862,
+    "Model": "FCMath (Standard)",
+    "MSE": 0.6755,
+    "MAE": 0.3613,
+    "Mid_FVU": 0.9804,
+    "LSD_dB": 14.22,
+    "Time_s": 351.13
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Channels": 862,
+    "Model": "FCMath-Tuned",
+    "MSE": 0.7299,
+    "MAE": 0.4034,
+    "Mid_FVU": 0.9733,
+    "LSD_dB": 15.17,
+    "Time_s": 354.82
+  },
+  {
+    "Dataset": "traffic.csv",
+    "Channels": 862,
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.5263,
+    "MAE": 0.3908,
+    "Mid_FVU": 0.9246,
+    "LSD_dB": 9.74,
+    "Time_s": 1.86
+  },
+  {
+    "Dataset": "ETTm1.csv",
+    "Channels": 7,
+    "Model": "Chronos-Raw",
+    "MSE": 0.6435,
+    "MAE": 0.5228,
+    "Mid_FVU": 1.1737,
+    "LSD_dB": 13.76,
+    "Time_s": 2.98
+  },
+  {
+    "Dataset": "ETTm1.csv",
+    "Channels": 7,
+    "Model": "FCMath (Standard)",
+    "MSE": 1.7572,
+    "MAE": 0.835,
+    "Mid_FVU": 1.4625,
+    "LSD_dB": 14.26,
+    "Time_s": 2.92
+  },
+  {
+    "Dataset": "ETTm1.csv",
+    "Channels": 7,
+    "Model": "FCMath-Tuned",
+    "MSE": 1.6464,
+    "MAE": 0.8219,
+    "Mid_FVU": 1.451,
+    "LSD_dB": 15.07,
+    "Time_s": 2.98
+  },
+  {
+    "Dataset": "ETTm1.csv",
+    "Channels": 7,
+    "Model": "CycleNet (W=24)",
+    "MSE": 0.3506,
+    "MAE": 0.4188,
+    "Mid_FVU": 1.8776,
+    "LSD_dB": 8.66,
+    "Time_s": 0.24
+  }
+]

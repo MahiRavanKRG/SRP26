@@ -1,0 +1,427 @@
+[
+  {
+    "model_name": "DLinear (AAAI 2023)",
+    "params": 64718,
+    "best_epoch": 17,
+    "total_epochs": 24,
+    "train_time_sec": 45.23,
+    "test_mse": 0.3772,
+    "test_mae": 0.4018,
+    "mid_band_error": 57.14003,
+    "mid_band_fvu": 0.4871,
+    "epoch_logs": [
+      {
+        "epoch": 1,
+        "train_loss": 0.37778,
+        "val_loss": 0.7029,
+        "is_best": true
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.35175,
+        "val_loss": 0.70468,
+        "is_best": false
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.34861,
+        "val_loss": 0.68787,
+        "is_best": true
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.34757,
+        "val_loss": 0.70928,
+        "is_best": false
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.34718,
+        "val_loss": 0.7006,
+        "is_best": false
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.34705,
+        "val_loss": 0.68971,
+        "is_best": false
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.3465,
+        "val_loss": 0.70733,
+        "is_best": false
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.34582,
+        "val_loss": 0.71857,
+        "is_best": false
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.34616,
+        "val_loss": 0.7049,
+        "is_best": false
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.34559,
+        "val_loss": 0.68637,
+        "is_best": true
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.34638,
+        "val_loss": 0.68786,
+        "is_best": false
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.3458,
+        "val_loss": 0.70992,
+        "is_best": false
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.34607,
+        "val_loss": 0.69151,
+        "is_best": false
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.34631,
+        "val_loss": 0.70468,
+        "is_best": false
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.34556,
+        "val_loss": 0.68772,
+        "is_best": false
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.34533,
+        "val_loss": 0.70615,
+        "is_best": false
+      },
+      {
+        "epoch": 17,
+        "train_loss": 0.34597,
+        "val_loss": 0.68282,
+        "is_best": true
+      },
+      {
+        "epoch": 18,
+        "train_loss": 0.34573,
+        "val_loss": 0.68687,
+        "is_best": false
+      },
+      {
+        "epoch": 19,
+        "train_loss": 0.34536,
+        "val_loss": 0.69304,
+        "is_best": false
+      },
+      {
+        "epoch": 20,
+        "train_loss": 0.3461,
+        "val_loss": 0.68399,
+        "is_best": false
+      },
+      {
+        "epoch": 21,
+        "train_loss": 0.34621,
+        "val_loss": 0.70753,
+        "is_best": false
+      },
+      {
+        "epoch": 22,
+        "train_loss": 0.34617,
+        "val_loss": 0.69749,
+        "is_best": false
+      },
+      {
+        "epoch": 23,
+        "train_loss": 0.34619,
+        "val_loss": 0.73564,
+        "is_best": false
+      },
+      {
+        "epoch": 24,
+        "train_loss": 0.34603,
+        "val_loss": 0.6993,
+        "is_best": false
+      }
+    ]
+  },
+  {
+    "model_name": "CycleNet (NeurIPS 2024, W=24)",
+    "params": 32534,
+    "best_epoch": 5,
+    "total_epochs": 12,
+    "train_time_sec": 21.54,
+    "test_mse": 0.3678,
+    "test_mae": 0.3971,
+    "mid_band_error": 55.85359,
+    "mid_band_fvu": 0.4761,
+    "epoch_logs": [
+      {
+        "epoch": 1,
+        "train_loss": 0.38011,
+        "val_loss": 0.70867,
+        "is_best": true
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.35082,
+        "val_loss": 0.68914,
+        "is_best": true
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.34712,
+        "val_loss": 0.69411,
+        "is_best": false
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.34423,
+        "val_loss": 0.6908,
+        "is_best": false
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.34222,
+        "val_loss": 0.67533,
+        "is_best": true
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.3405,
+        "val_loss": 0.68424,
+        "is_best": false
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.34012,
+        "val_loss": 0.6816,
+        "is_best": false
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.34045,
+        "val_loss": 0.68892,
+        "is_best": false
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.33952,
+        "val_loss": 0.69108,
+        "is_best": false
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.33993,
+        "val_loss": 0.68064,
+        "is_best": false
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.33968,
+        "val_loss": 0.68415,
+        "is_best": false
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.34025,
+        "val_loss": 0.68208,
+        "is_best": false
+      }
+    ]
+  },
+  {
+    "model_name": "TwoStageFourierAttentionNet (Fourier Base + Residual Attention)",
+    "params": 238898,
+    "best_epoch": 1,
+    "total_epochs": 8,
+    "train_time_sec": 55.98,
+    "test_mse": 0.4109,
+    "test_mae": 0.4273,
+    "mid_band_error": 62.35953,
+    "mid_band_fvu": 0.5316,
+    "epoch_logs": [
+      {
+        "epoch": 1,
+        "train_loss": 0.35386,
+        "val_loss": 0.77896,
+        "is_best": true
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.26344,
+        "val_loss": 0.83871,
+        "is_best": false
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.22182,
+        "val_loss": 1.00112,
+        "is_best": false
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.19365,
+        "val_loss": 1.06126,
+        "is_best": false
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.17014,
+        "val_loss": 1.17803,
+        "is_best": false
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.14738,
+        "val_loss": 1.29886,
+        "is_best": false
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.12845,
+        "val_loss": 1.32374,
+        "is_best": false
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.11572,
+        "val_loss": 1.31257,
+        "is_best": false
+      }
+    ]
+  },
+  {
+    "model_name": "TwoStageFourierPatchAttentionNet (Fourier Base + PatchTST Residuals)",
+    "params": 445995,
+    "best_epoch": 1,
+    "total_epochs": 8,
+    "train_time_sec": 54.65,
+    "test_mse": 0.3822,
+    "test_mae": 0.4052,
+    "mid_band_error": 58.28504,
+    "mid_band_fvu": 0.4969,
+    "epoch_logs": [
+      {
+        "epoch": 1,
+        "train_loss": 0.37173,
+        "val_loss": 0.70113,
+        "is_best": true
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.3288,
+        "val_loss": 0.70365,
+        "is_best": false
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.32097,
+        "val_loss": 0.7249,
+        "is_best": false
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.31429,
+        "val_loss": 0.71189,
+        "is_best": false
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.30657,
+        "val_loss": 0.74399,
+        "is_best": false
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.2973,
+        "val_loss": 0.74819,
+        "is_best": false
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.29005,
+        "val_loss": 0.75159,
+        "is_best": false
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.28423,
+        "val_loss": 0.77542,
+        "is_best": false
+      }
+    ]
+  },
+  {
+    "model_name": "TwoStageFourierTQNet (Fourier Base + TQ Cross-Channel Residual Attention)",
+    "params": 626251,
+    "best_epoch": 1,
+    "total_epochs": 8,
+    "train_time_sec": 39.96,
+    "test_mse": 0.3946,
+    "test_mae": 0.4127,
+    "mid_band_error": 59.89049,
+    "mid_band_fvu": 0.5106,
+    "epoch_logs": [
+      {
+        "epoch": 1,
+        "train_loss": 0.35262,
+        "val_loss": 0.74844,
+        "is_best": true
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.29451,
+        "val_loss": 0.79802,
+        "is_best": false
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.27154,
+        "val_loss": 0.81932,
+        "is_best": false
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.25385,
+        "val_loss": 0.84673,
+        "is_best": false
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.23937,
+        "val_loss": 0.86013,
+        "is_best": false
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.22798,
+        "val_loss": 0.86069,
+        "is_best": false
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.2178,
+        "val_loss": 0.88793,
+        "is_best": false
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.21034,
+        "val_loss": 0.88301,
+        "is_best": false
+      }
+    ]
+  }
+]

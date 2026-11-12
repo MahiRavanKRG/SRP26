@@ -1,0 +1,28 @@
+Dataset            : weatherCNN
+Data path          : C:\Users\phili\Desktop\Data Analytics\2 Semester\SRP\CNN\weatherCNN.csv
+Shape (T x C)      : (52696, 21)
+Device             : cuda
+Splits (rows)      : train=[0:36887) val=[36887:42156) test=[42156:52696)
+
+--- FFT period detection ---
+FFT candidate periods           : [144, 72, 120]
+ACF-confirmed true periods       : [144, 72, 120]
+ACF-rejected periods (noise)     : []
+ACF scores                       : {144: 0.689, 72: -0.3842, 120: 0.323}
+
+--- Multi-cycle vs single-cycle decision ---
+Variance-reduction detail        : {'top_1': {'periods': [144], 'reduction_pct': 38.971}, 'top_2': {'periods': [144, 72], 'reduction_pct': 38.975}, 'top_3': {'periods': [144, 72, 120], 'reduction_pct': 39.226}}
+Decision                         : SINGLE-CYCLE (mode=auto)
+Periods used by model             : [144]
+
+Config : seq_len=336, batch_size=32, model_type=cnn, cnn_hidden=32, cnn_kernel_size=5, cnn_layers=2, epochs(max)=30, patience=5, lr=0.001, seed=2024
+
+==========================================================================================
+  pred_len |        MSE |        MAE |    #params
+==========================================================================================
+        96 |     0.2355 |     0.2839 |      8,443
+       192 |     0.2616 |     0.3036 |      8,443
+       336 |     0.2958 |     0.3213 |      8,443
+       720 |     0.3480 |     0.3552 |      8,443
+------------------------------------------------------------------------------------------
+   AVERAGE |     0.2852 |     0.3160

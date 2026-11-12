@@ -1,0 +1,134 @@
+% SORMixer Presentation Architecture Diagram (Wide 16:9 Layout)
+\providecolor{sorblue}{RGB}{24, 76, 120}
+\providecolor{sororange}{RGB}{214, 90, 49}
+\providecolor{sorgreen}{RGB}{46, 117, 89}
+\providecolor{sordark}{RGB}{45, 52, 54}
+\providecolor{sorlight}{RGB}{245, 246, 250}
+
+\begin{tikzpicture}[
+    >=stealth,
+    font=\small,
+    box/.style={draw, rounded corners=3pt, thick, align=center, inner sep=4.5pt, fill=white, font=\small},
+    input/.style={box, fill=blue!10, draw=sorblue!80, text width=4.6cm},
+    fold/.style={box, fill=cyan!12, draw=cyan!70!black, text width=4.6cm},
+    patch/.style={box, fill=teal!12, draw=teal!70!black, text width=4.6cm},
+    intra/.style={box, fill=orange!15, draw=sororange!80, text width=4.6cm},
+    pool/.style={box, fill=teal!18, draw=teal!80!black, text width=4.6cm},
+    film_node/.style={box, fill=purple!20, draw=purple!80!black, text width=4.6cm},
+    inter/.style={box, fill=yellow!30!orange!18, draw=sororange!90, text width=4.6cm},
+    head/.style={box, fill=cyan!18, draw=cyan!80!black, text width=4.6cm},
+    output/.style={box, fill=sorgreen!20, draw=sorgreen!80!black, text width=4.6cm},
+    spec/.style={box, fill=violet!12, draw=violet!70!black, text width=4.6cm},
+    card/.style={draw=sordark!40, fill=sorlight, rounded corners=3pt, inner sep=5pt, font=\footnotesize, align=left}
+]
+
+% =========================================================================
+% STAGE 1: Patch Formation & Intra-Patch Modeling (x = 0)
+% =========================================================================
+\node[font=\bfseries\normalsize, text=sorblue, anchor=center] (s1_title) at (0, 0.4) {1. Patch \& Intra-Mixer};
+
+\node[input, below=0.22cm of s1_title] (in_res) {
+    \textbf{Residual Input} $\mathbf{X}_{\text{res}} \in \mathbb{R}^{B \times L \times C}$\\
+    \footnotesize De-cycled residual from CycleNet-Pro
+};
+
+\node[fold, below=0.22cm of in_res] (fold) {
+    \textbf{Channel Fold} $\mathbf{X}_c$\\
+    \footnotesize Reshape to $[B \cdot C, L]$ (Channel-Indep.)
+};
+
+\node[patch, below=0.22cm of fold] (patching) {
+    \textbf{Unfold \& Point Embed}\\
+    \footnotesize Patches: $[B \cdot C, N, P] \implies \mathbf{H}_0 \in [B \cdot C, N, P, D]$
+};
+
+\node[intra, below=0.22cm of patching] (intra) {
+    \textbf{Intra-Patch Mixer}\\
+    \footnotesize Time-MLP ($P \to 2P \to P$) + Feat-MLP ($D \to 2D \to D$)
+};
+
+\node[pool, below=0.22cm of intra] (pool) {
+    \textbf{Patch Token Pooling}\\
+    \footnotesize $\text{Linear}(P \cdot D \to D) \implies \mathbf{H} \in [B \cdot C, N, D]$
+};
+
+\draw[->, thick, color=sorblue] (in_res) -- (fold);
+\draw[->, thick, color=teal!80!black] (fold) -- (patching);
+\draw[->, thick, color=teal!80!black] (patching) -- (intra);
+\draw[->, thick, color=sororange!90!black] (intra) -- (pool);
+
+% =========================================================================
+% STAGE 2: DCT-II Spectral Conditioning Branch (x = 5.5)
+% =========================================================================
+\node[font=\bfseries\normalsize, text=violet!85!black, anchor=center] (s2_title) at (5.5, 0.4) {2. Spectral FiLM Branch};
+
+\node[spec, below=0.22cm of s2_title] (dct) {
+    \textbf{Orthonormal DCT-II}\\
+    \footnotesize $\mathbf{C}_{\text{dct}} = \mathbf{X}_c \mathbf{D}^T \in \mathbb{R}^{B \cdot C \times L}$ (Energy compaction)
+};
+
+\node[spec, below=0.22cm of dct] (spec_power) {
+    \textbf{Log-Power Subbands}\\
+    \footnotesize $\mathbf{S} = \log(1 + \mathbf{C}_{\text{dct}}^2) \to \text{Pool}(K=4) \implies \bar{\mathbf{s}} \in [B \cdot C, K]$
+};
+
+\node[spec, below=0.22cm of spec_power] (film_mlp) {
+    \textbf{Zero-Init FiLM Generator}\\
+    \footnotesize MLP: $K \to \text{hidden} \to 2D \implies (\boldsymbol{\gamma}, \boldsymbol{\beta}) = (\mathbf{0}, \mathbf{0})$
+};
+
+\node[film_node, below=0.28cm of film_mlp] (film) {
+    \textbf{FiLM Spectral Modulation}\\
+    $\mathbf{H}_{\text{cond}} = \mathbf{H} \odot (1 + \boldsymbol{\gamma}) + \boldsymbol{\beta}$\\
+    \footnotesize \textit{Step 0: Identity Initialization ($\mathbf{H}_{\text{cond}} = \mathbf{H}$)}
+};
+
+% Connectors in Stage 2
+\draw[->, thick, color=violet!80!black] (dct) -- (spec_power);
+\draw[->, thick, color=violet!80!black] (spec_power) -- (film_mlp);
+\draw[->, thick, color=purple!90!black] (film_mlp) -- (film)
+    node[midway, right, font=\footnotesize] {$(\boldsymbol{\gamma}, \boldsymbol{\beta})$};
+
+% =========================================================================
+% STAGE 3: Inter-Patch Mixer & Forecasting Head (x = 11.0)
+% =========================================================================
+\node[font=\bfseries\normalsize, text=sororange!95!black, anchor=center] (s3_title) at (11.0, 0.4) {3. Inter-Patch \& Forecast};
+
+\node[inter, below=0.22cm of s3_title] (inter) {
+    \textbf{Neighbor-Gated Inter-Mixer}\\
+    \footnotesize Context: $[\mathbf{h}_{i-1}, \mathbf{h}_i, \mathbf{h}_{i+1}] \in 3D \to \text{MLP}_{3D \to D}$\\
+    \footnotesize Dynamic Gate $g_i \in [0, 1]$ + Feat-MLP
+};
+
+\node[head, below=0.22cm of inter] (head) {
+    \textbf{Forecasting Head}\\
+    \footnotesize $\text{Linear}(N \cdot D \to D) \to \text{GELU} \to \text{Linear}(D \to H)$
+};
+
+\node[output, below=0.22cm of head] (out_res) {
+    \textbf{Residual Forecast} $\hat{\mathbf{Y}}_{\text{res}} \in \mathbb{R}^{B \times H \times C}$\\
+    \footnotesize Unfold channels + Periodic forecast $\hat{\mathbf{Y}}_{\text{cycle}}$
+};
+
+\node[card, below=0.22cm of out_res, text width=4.6cm] (summary_card) {
+    \textbf{Key SORMixer Specifications:}\\
+    $\bullet$ \textbf{Params}: $\sim \mathbf{100\text{k}}$ ($10\times$ smaller than PatchTST)\\
+    $\bullet$ \textbf{Complexity}: $\mathcal{O}(N)$ strictly linear in patches\\
+    $\bullet$ \textbf{Channel}: Independent residual modeling\\
+    $\bullet$ \textbf{Conditioning}: Orthonormal DCT-II FiLM
+};
+
+% Connectors between Stages
+% Branch from Stage 1 Fold to Stage 2 DCT
+\draw[->, thick, color=violet!80!black] (fold.east) -- ++(0.45, 0) node[midway, above, font=\footnotesize] {$\mathbf{X}_c$} |- (dct.west);
+
+% Stream from Stage 1 Pool to Stage 2 FiLM
+\draw[->, thick, color=teal!80!black] (pool.east) -- ++(0.45, 0) node[midway, above, font=\footnotesize] {$\mathbf{H}$} |- (film.west);
+
+% Stream from Stage 2 FiLM to Stage 3 Inter-Patch (centered in corridor)
+\draw[->, thick, color=purple!80!black] (film.east) -- ++(0.45, 0) node[midway, above, font=\footnotesize] {$\mathbf{H}_{\text{cond}}$} |- (inter.west);
+
+\draw[->, thick, color=sororange!90!black] (inter) -- (head);
+\draw[->, thick, color=sorgreen!80!black] (head) -- (out_res);
+
+\end{tikzpicture}

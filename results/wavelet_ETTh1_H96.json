@@ -1,0 +1,21 @@
+{
+    "model": "wavelet",
+    "dataset": "ETTh1.csv",
+    "seq_len": 336,
+    "pred_len": 96,
+    "mse": 0.42316219210624695,
+    "mae": 0.45226192474365234,
+    "band_mse_low": 0.3452248783681363,
+    "band_mse_mid": 0.06586638587343148,
+    "band_mse_high": 0.012070927646169455,
+    "band_fvu_low": 0.505170264493995,
+    "band_fvu_mid": 0.7806291634008157,
+    "band_fvu_high": 1.0450360464662694,
+    "energy_ratio_low": 0.7583950871306732,
+    "energy_ratio_mid": 0.26978210819862,
+    "energy_ratio_high": 0.11581553070685045,
+    "mean_coherence": 1.0,
+    "lsd": 11.778135299682617,
+    "alpha": 0.5173341035842896,
+    "failure_windows_flagged": 13535
+}

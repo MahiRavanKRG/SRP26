@@ -1,0 +1,28 @@
+Dataset            : ETTh2CNN
+Data path          : C:\Users\phili\Desktop\Data Analytics\2 Semester\SRP\CNN\ETTh2CNN.csv
+Shape (T x C)      : (17420, 7)
+Device             : cuda
+Splits (rows)      : train=[0:8640) val=[8640:11520) test=[11520:14400)
+
+--- FFT period detection ---
+FFT candidate periods           : [24, 262, 320, 123]
+ACF-confirmed true periods       : [24, 123, 262, 320]
+ACF-rejected periods (noise)     : []
+ACF scores                       : {24: 0.7448, 262: 0.3269, 320: 0.1519, 123: 0.4253}
+
+--- Multi-cycle vs single-cycle decision ---
+Variance-reduction detail        : {'top_1': {'periods': [24], 'reduction_pct': 10.045}, 'top_2': {'periods': [24, 123], 'reduction_pct': 10.793}, 'top_3': {'periods': [24, 123, 262], 'reduction_pct': 12.391}}
+Decision                         : SINGLE-CYCLE (mode=auto)
+Periods used by model             : [24]
+
+Config : seq_len=336, batch_size=32, model_type=cnn, cnn_hidden=32, cnn_kernel_size=5, cnn_layers=2, epochs(max)=30, patience=5, lr=0.001, seed=2024
+
+==========================================================================================
+  pred_len |        MSE |        MAE |    #params
+==========================================================================================
+        96 |     0.3645 |     0.4116 |      5,559
+       192 |     0.3876 |     0.4288 |      5,559
+       336 |     0.3873 |     0.4320 |      5,559
+       720 |     0.4414 |     0.4646 |      5,559
+------------------------------------------------------------------------------------------
+   AVERAGE |     0.3952 |     0.4342

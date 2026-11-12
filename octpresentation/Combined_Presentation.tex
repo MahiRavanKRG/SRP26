@@ -1,0 +1,532 @@
+% Combined group presentation.
+% Order follows the outline:
+%   0. Title page
+%   1. Outline, 2. Goal                  (Outline_Goal.tex)
+%   3. Architecture                       (presentation_kurz.tex, restyled)
+%   4. Literature                         (TO BE ADDED, see marker below)
+%   5. Parameters, 6. Experiments        (Philip.tex, restyled)
+%   7. Discussion, 8. Outlook, closing   (Hadi_Discussion_Outlook.tex)
+\documentclass[aspectratio=169]{beamer}
+\usepackage[scaled=0.98]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{xcolor}
+
+% Reserved academic palette with a title strip and no shaded callout boxes.
+\definecolor{ink}{HTML}{26343D}
+\definecolor{muted}{HTML}{59666C}
+\definecolor{accent}{HTML}{8B6A45}
+\definecolor{header}{HTML}{273C3D}
+\definecolor{paper}{HTML}{FBFBF9}
+\setbeamercolor{background canvas}{bg=paper}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=white,bg=header}
+\setbeamercolor{structure}{fg=accent}
+\setbeamercolor{footline}{fg=muted}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{footline}{size=\scriptsize}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{frametitle}{\nointerlineskip\begin{beamercolorbox}[wd=\paperwidth,ht=0.72cm,dp=0.15cm,leftskip=0.62cm]{frametitle}\usebeamerfont{frametitle}\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hfill\usebeamerfont{footline}\insertframenumber/\inserttotalframenumber\hspace{0.55cm}\vspace{0.25cm}}
+\setbeamertemplate{itemize item}{\textcolor{accent}{\raisebox{0.15ex}{\scriptsize$\bullet$}}}
+\setbeamertemplate{itemize subitem}{\textcolor{accent}{$\bullet$}}
+\setbeamertemplate{enumerate item}{\textcolor{accent}{\textbf{\insertenumlabel}}}
+\setlength{\tabcolsep}{8pt}
+
+% Helpers.
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\outlineitem}[2]{%
+  \textcolor{accent}{\textbf{#1}}\hspace{0.8em}\textbf{#2}\par\vspace{0.55em}}
+\newcommand{\outlinesub}[1]{%
+  \hspace{2.1em}\textcolor{muted}{\small #1}\par\vspace{0.25em}}
+
+\begin{document}
+
+%######################################################################
+% TITLE PAGE (shown during the introduction)
+%######################################################################
+
+\begingroup
+\usebackgroundtemplate{\vbox to \paperheight{\hsize=\paperwidth\nointerlineskip
+  \hbox to \paperwidth{\color{header}\vrule width \paperwidth height 5.0cm depth 0pt}\nointerlineskip
+  \hbox to \paperwidth{\color{accent}\vrule width \paperwidth height 0.1cm depth 0pt}\vskip 0.4cm
+  \hbox to \paperwidth{\hfil\IfFileExists{title_image.png}{\includegraphics[width=5.0cm]{title_image.png}}{}\hspace{0.8cm}}\vfil}}
+\begin{frame}[plain,t]
+\vspace{0.85cm}
+\hspace{0.45cm}\begin{minipage}{0.84\paperwidth}
+{\color{white}\fontsize{27}{32}\selectfont\bfseries Time Series Forecasting\\in the Frequency Domain\par}
+\vspace{0.45cm}
+{\color{white}\normalsize Where periodic modeling helps lightweight forecasters, and where it fails\par}
+\end{minipage}\par
+\vspace{1.55cm}
+\hspace{0.45cm}\begin{minipage}{0.84\paperwidth}
+\small
+\textbf{Aaditya Chaturvedi \quad Abdelhadi Hadj Sahraoui}\\[0.15em]
+\textbf{Philip Gentner \quad Mohamad Taleb}\par\vspace{0.3em}
+\textcolor{muted}{\footnotesize Supervisor: Jung Min Choi}\par\vspace{0.45em}
+\textbf{SRP interim presentation}\par\vspace{0.3em}
+\textcolor{muted}{\footnotesize Information Systems and Machine Learning Lab (ISMLL)\\
+University of Hildesheim}
+\end{minipage}
+\end{frame}
+\endgroup
+
+%######################################################################
+% PART 1 --- OUTLINE AND GOAL
+%######################################################################
+
+\begin{frame}{Outline}
+\normalsize
+\vspace{0.6em}
+\outlineitem{1}{What is the goal?}
+\outlineitem{2}{Our architecture}
+\outlineitem{3}{Literature}
+\outlinesub{CycleNet \quad$\cdot$\quad HDMixer \quad$\cdot$\quad PatchTST}
+\vspace{0.3em}
+\outlineitem{4}{Which parameters do what?}
+\outlineitem{5}{Experiments}
+\outlineitem{6}{Discussion: why did something work or not work?}
+\outlineitem{7}{Outlook: what do we want to do next?}
+\end{frame}
+
+\begin{frame}{What is the goal?}
+\small
+\textit{Find out when periodic modeling helps lightweight forecasters, and when it does not.}\par
+\vspace{0.55em}
+{\setlength{\fboxsep}{7pt}\setlength{\fboxrule}{0.45pt}%
+\noindent\color{black}\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\textbf{Research question}\par\vspace{0.25em}
+When does frequency-domain and periodic modeling actually help versus fail in lightweight multivariate time series forecasting?
+\end{minipage}}}
+\vspace{0.75em}
+\begin{itemize}
+  \setlength{\itemsep}{0.65em}
+  \item \textbf{Starting point:} CycleNet stores a learnable cyclic pattern, subtracts it from the input, forecasts the remaining residual with a small backbone, and adds the pattern back.
+  \item \textbf{Open limitation:} The cycle length is chosen by hand for each dataset (for example 24, 96, 144 or 168). The paper itself lists varying cycle lengths across channels as unresolved.
+  \item \textbf{Our approach:} Replace these manual choices with decisions made from the data, and log every decision so that a result can be traced back to a property of the dataset.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What is the goal? Data-driven settings}
+\small
+\textit{The forward pass stays the same. What changes is how its settings are chosen.}\par
+\vspace{0.7em}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{6.2cm}@{}}
+\toprule
+\textbf{Component} & \textbf{Original CycleNet} & \textbf{Our version} \\
+\midrule
+Cycle length & Set by hand per dataset & FFT peaks on the training series, kept only if the autocorrelation exceeds its 95\% noise bound \\
+Number of cycles & One & One to three; an extra period is added only if it explains at least 2\% more variance \\
+Channel handling & Channel-independent & A correlation check decides; a mixing layer is added only for strongly correlated channels \\
+Backbone & Linear or MLP & Linear, MLP, CNN or spectral-conditioned patch mixer (SOR) \\
+\bottomrule
+\end{tabular}
+\vspace{0.5em}
+
+{\footnotesize\textcolor{muted}{Current limitation: periods are detected on the channel-averaged training series, so all channels share the same cycles for now.}}
+\end{frame}
+
+\begin{frame}{What is the goal? What we want to find out}
+\normalsize
+{\small\textit{Each question is answered with the same fixed protocol on every dataset.}}\par
+\vspace{0.8em}
+\textcolor{accent}{\textbf{1}}\quad \textbf{Can detected cycles replace hand-set ones?}
+\par\vspace{0.3em}
+{\small Compare the detected periods with the standard values and compare the resulting forecasts.}
+
+\vspace{0.5em}
+\textcolor{accent}{\textbf{2}}\quad \textbf{When do extra components help?}
+\par\vspace{0.3em}
+{\small Check whether multiple cycles and channel mixing pay off only on the datasets where the diagnostics suggest it, and report where the gain is small.}
+
+\vspace{0.5em}
+\textcolor{accent}{\textbf{3}}\quad \textbf{Which backbone suits the residual, and why?}
+\par\vspace{0.3em}
+{\small Compare four backbones on the same de-cycled residual, then use ablations to identify what drives any difference.}
+
+\vspace{0.4em}
+{\footnotesize\textcolor{muted}{Protocol: lookback 336, chronological splits (12/4/4 months on ETT, 70/10/20 otherwise), scaler fit on the training split only.}}
+\end{frame}
+
+%######################################################################
+% PART 2 --- OUR ARCHITECTURE
+%######################################################################
+
+\begin{frame}{Normalized frequency metrics}
+\small
+\textit{Raw MSE is scale-dependent, so we use two scale-free diagnostic metrics.}\par
+\vspace{0.5em}
+\begin{columns}[T]
+\column{0.5\textwidth}
+\textbf{1. Fraction of variance unexplained, $FVU_{\text{band}}$}
+\[
+  FVU_{\text{band}} = \frac{\sum_{k \in \mathcal{B}} w_k |E(k)|^2}{\sum_{k \in \mathcal{B}} w_k |Y(k) - \bar{Y}(k)|^2}
+\]
+\begin{itemize}
+  \setlength{\itemsep}{0.35em}
+  \item $FVU < 1.0$: the model learns genuine dynamics in that band.
+  \item $FVU \approx 1.0$: no better than predicting a flat mean line.
+  \item $FVU > 1.0$: the model hallucinates power and amplifies noise.
+\end{itemize}
+\column{0.5\textwidth}
+\textbf{2. Log-spectral distance, LSD (in dB)}
+\[
+  \text{LSD} = \sqrt{\frac{1}{M} \sum_{k=0}^{M-1} \left( 10 \log_{10} \frac{|\hat{Y}(k)|^2 + \epsilon}{|Y(k)|^2 + \epsilon} \right)^2}
+\]
+\begin{itemize}
+  \setlength{\itemsep}{0.35em}
+  \item Measures distortion of the power spectral density over the full Nyquist range.
+  \item Directly penalizes harmonic damping and spectral collapse.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Our architecture: CycleNet-Pro}
+\small
+\textit{Explicit periodic memory plus modular residual backbones.}\par
+\vspace{0.2em}
+\begin{columns}[T]
+\column{0.54\textwidth}
+\begin{enumerate}
+  \setlength{\itemsep}{0.4em}
+  \item \textbf{RevIN instance normalization:} guards against global non-stationary distribution shifts.
+  \item \textbf{Automated period discovery:} extracts multiple cycles via FFT and ACF, with no hardcoded periods.
+  \item \textbf{Recurrent cyclic state queues:} explicit learnable periodic parameters $\mathbf{Q}^{(k)}$.
+  \item \textbf{Modular residual backbones:} de-cycled inputs are routed through a specialized backbone.
+  \item \textbf{Residual channel mixing:} mixes channels only when they are correlated.
+\end{enumerate}
+\column{0.46\textwidth}
+\centering
+\tikzset{flow/.style={draw=ink, rounded corners=3pt, line width=0.5pt, fill=white, text width=4.7cm, minimum height=0.75cm, align=center, font=\footnotesize, inner sep=3pt}}
+\begin{tikzpicture}[node distance=0.22cm, >={Stealth[length=2.2mm]}]
+  \node[flow, fill=muted!10] (inp) {Input series $\mathbf{X} \in \mathbb{R}^{L \times C}$};
+  \node[flow, fill=accent!12, below=of inp] (det) {Automated period engine\\(FFT peaks + ACF filter)};
+  \node[flow, fill=accent!12, below=of det] (dec) {De-cycling\\$\mathbf{X}_{\text{res}} = \mathbf{X} - \sum_k \mathbf{Q}^{(k)}$};
+  \node[flow, below=of dec] (bb) {Modular residual backbone\\(Linear / MLP / CNN / SCPM)};
+  \node[flow, fill=muted!10, below=of bb] (rec) {Recombination and RevIN out\\$\hat{\mathbf{Y}} = \mathbf{Y}_{\text{res}} + \mathbf{Y}_{\text{cycle}}$};
+  \foreach \a/\b in {inp/det,det/dec,dec/bb,bb/rec} \draw[->, line width=0.6pt] (\a) -- (\b);
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Stage 1: automated period discovery (FFT + ACF)}
+\small
+\textit{Prior models force a hardcoded period ($p=24$ or $p=96$). CycleNet-Pro finds the periods in the training data.}\par
+\vspace{0.7em}
+\begin{columns}[T]
+\column{0.32\textwidth}
+\textcolor{accent}{\textbf{1}}\quad \textbf{FFT peak ranking}\par\vspace{0.3em}
+\begin{itemize}
+  \setlength{\itemsep}{0.4em}
+  \item Power spectrum $P(f) = |\text{rFFT}(\mathbf{x})|^2$.
+  \item Candidate peaks from local extrema.
+  \item Merge spectral-leakage clusters within a 12\% relative distance.
+\end{itemize}
+\column{0.34\textwidth}
+\textcolor{accent}{\textbf{2}}\quad \textbf{ACF noise filter}\par\vspace{0.3em}
+\begin{itemize}
+  \setlength{\itemsep}{0.4em}
+  \item Validate each candidate with the empirical autocorrelation.
+  \item 95\% white-noise threshold: $\text{Bound}_{\text{ACF}} = \dfrac{1.96}{\sqrt{N_{\text{train}}}}$
+  \item Rejects spurious spectral peaks.
+\end{itemize}
+\column{0.34\textwidth}
+\textcolor{accent}{\textbf{3}}\quad \textbf{Variance decision}\par\vspace{0.3em}
+\begin{itemize}
+  \setlength{\itemsep}{0.4em}
+  \item Marginal variance reduction of each added cycle: $\Delta\text{Var}(k) \ge 2.0\%$.
+  \item Accepts secondary and tertiary cycles (for example intra-day plus weekly).
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Stage 2: recurrent periodic queues and de-cycling}
+\small
+\begin{columns}[T]
+\column{0.56\textwidth}
+\textbf{Explicit recurrent state}\par\vspace{0.2em}
+\begin{itemize}
+  \setlength{\itemsep}{0.4em}
+  \item For each period $p_k \in \mathcal{P}$, keep a learnable state matrix $\mathbf{Q}^{(k)} \in \mathbb{R}^{p_k \times C}$.
+  \item With global time index $\tau$, retrieve the stored pattern by circular phase indexing:
+  \[ \mathbf{C}^{(k)}_t = \mathbf{Q}^{(k)}_{(\tau + t) \bmod p_k}, \quad t \in [0, L-1] \]
+  \item \textbf{Residual de-cycling:} subtract the periodic components from the RevIN-normalized input:
+  \[ \mathbf{X}_{\text{res}} = \mathbf{X}_{\text{norm}} - \sum_{k=1}^{K} \mathbf{C}^{(k)} \]
+\end{itemize}
+\column{0.44\textwidth}
+\textbf{Why de-cycling works}\par\vspace{0.2em}
+\begin{itemize}
+  \setlength{\itemsep}{0.4em}
+  \item The residual holds only non-periodic dynamics: trends, transient shocks, regime changes.
+  \item The backbone does not waste capacity on repetitive daily cycles.
+  \item Periodic extrapolation to horizon $H$ is exact:
+  \[ \mathbf{Y}_{\text{cycle},t} = \sum_{k=1}^{K} \mathbf{Q}^{(k)}_{(\tau + L + t) \bmod p_k} \]
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Modular residual backbones}
+\footnotesize
+\textit{Four interchangeable backbones forecast the de-cycled residual.}\par
+\vspace{0.3em}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\textcolor{accent}{\textbf{1}}\quad \textbf{Linear and MLP}\par\vspace{0.3em}
+\begin{itemize}
+  \setlength{\itemsep}{0.3em}
+  \item \textbf{Linear:} channel-independent $\mathbf{W} \in \mathbb{R}^{H \times L}$, a parameter-efficient baseline.
+  \item \textbf{MLP:} two layers with hidden size 512 and GELU, for non-linear temporal dynamics.
+\end{itemize}
+\vspace{0.5em}
+\textcolor{accent}{\textbf{2}}\quad \textbf{1D-CNN (edge scale)}\par\vspace{0.3em}
+\begin{itemize}
+  \setlength{\itemsep}{0.3em}
+  \item One shared 1D convolution across time and channels, with linear length interpolation ($L \to H$).
+  \item Cuts parameters by \textbf{97.7\%} (5.5k versus 241k on ETT).
+\end{itemize}
+\column{0.52\textwidth}
+\textcolor{accent}{\textbf{3}}\quad \textbf{SOR: spectral-conditioned patch mixer}\par\vspace{0.3em}
+\begin{itemize}
+  \setlength{\itemsep}{0.3em}
+  \item \textbf{Intra-patch mixer:} token MLP along time inside each patch, plus a feature MLP.
+  \item \textbf{Inter-patch mixer:} neighbor-aware gated MLP across the patch order, plus a feature MLP.
+  \item \textbf{FiLM spectral conditioning:} reads orthonormal DCT-II log-energy bands and modulates the patch tokens:
+  \[ \mathbf{Z}_{\text{cond}} = \mathbf{Z} \odot (1 + \boldsymbol{\gamma}) + \boldsymbol{\beta} \]
+  Zero initialization starts training from the identity.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{SOR Architecture: Spectral-Conditioned Patch Mixer}
+\centering
+\vspace{-0.25cm}
+\resizebox{!}{0.82\textheight}{%
+    \IfFileExists{sor_presentation.tikz}{\input{sor_presentation.tikz}}{\input{paper/figures/sor_presentation.tikz}}%
+}
+\end{frame}
+
+%######################################################################
+% PART 3 --- LITERATURE: CycleNet, HDMixer, PatchTST  (TO BE ADDED)
+%######################################################################
+% >>> INSERT the "Literature" frames here. <<<
+
+%######################################################################
+% PART 4 --- WHICH PARAMETERS DO WHAT?
+%######################################################################
+
+\begin{frame}{General model parameters}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}L{2.1cm} L{5.6cm} L{5.6cm}@{}}
+  \toprule
+  \textbf{Parameter} & \textbf{What it does and why it matters}
+                     & \textbf{Relation to data} \\
+  \midrule
+  \texttt{SEQ\_LEN}
+    & Length of the look-back window. Sets how many cycles the model
+      sees at once. A window shorter than the dominant period prevents
+      the recurrent-cycle component from learning a full cycle, and
+      also caps the period the FFT can detect.
+    & Should be a multiple of the dominant period. Long-cycle data
+      needs larger windows; short-range noisy data can use smaller
+      ones. \textbf{Most impactful parameter overall.} \\
+  \addlinespace
+  \texttt{PRED\_LENS}
+    & Forecast horizons evaluated. Defines how far into the future
+      the model must predict. Longer horizons are harder because the
+      model relies more on learned periodic structure and less on
+      recent observations.
+    & A task specification, not a data property. Should cover
+      multiple horizons to separate a model that generalises from one
+      that happens to fit a single output length. \\
+  \bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{SOR backbone parameters}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}L{2.1cm} L{5.6cm} L{5.6cm}@{}}
+  \toprule
+  \textbf{Parameter} & \textbf{What it does and why it matters}
+                     & \textbf{Relation to data} \\
+  \midrule
+  \texttt{SOR\_DROPOUT}
+    & Dropout inside every mixer block and the head. The primary
+      regularizer of the SOR backbone. Prevents memorising training
+      windows and forces the residual forecast to generalise. Too
+      high and the model cannot fit even the residual.
+    & Tracks noise level and training-set size. Noisy data or small
+      training splits need more dropout; clean data tolerates less.
+      \textbf{Most impactful SOR-specific parameter.} \\
+  \addlinespace
+  \texttt{STRIDE\_RATIO}
+    & Step between patches as a fraction of \texttt{PATCH\_LEN};
+      controls overlap. Low values give denser coverage and stronger
+      cross-patch context; high values give fewer, independent
+      patches. Head size scales with the number of patches.
+    & Denser overlap helps when adjacent patches are semantically
+      related (periodic, smooth). \\
+  \addlinespace
+  \texttt{PATCH\_LEN}
+    & Timesteps per patch; determines token granularity. Short
+      patches preserve fine detail, long patches aggregate context.
+      Ideal length aligns with the dominant period so each patch
+      covers one coherent cycle phase.
+    & Works best when it divides the dominant period cleanly. Short
+      patches suit spiky signals; long patches suit smooth,
+      single-cycle signals. \\
+  \bottomrule
+\end{tabular}
+\end{frame}
+
+%######################################################################
+% PART 5 --- EXPERIMENTS
+%######################################################################
+
+\begin{frame}{Results at look-back $L=336$ (average over horizons)}
+\centering
+\fontsize{6.5}{8}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l | cc | cc | cc | cc || cc | cc@{}}
+  \toprule
+  \multirow{2}{*}{\textbf{Dataset}}
+    & \multicolumn{2}{c}{\textbf{Linear}} & \multicolumn{2}{c}{\textbf{MLP}}
+    & \multicolumn{2}{c}{\textbf{CNN}}    & \multicolumn{2}{c}{\textbf{SOR}}
+    & \multicolumn{2}{c}{\textbf{PatchTST/42}} & \multicolumn{2}{c}{\textbf{HDMixer}} \\
+    & MSE & MAE & MSE & MAE & MSE & MAE & MSE & MAE & MSE & MAE & MSE & MAE \\
+  \midrule
+  ETTh1   & 0.4164 & 0.4271 & 0.4527 & 0.4477 & 0.4436 & 0.4551 & 0.4327 & 0.4420 & 0.4155 & 0.4294 & \textbf{0.406} & \textbf{0.424} \\
+  ETTh2   & 0.3601 & 0.4027 & 0.3738 & 0.4109 & 0.4025 & 0.4373 & 0.3646 & 0.4048 & \underline{0.3302} & \underline{0.3797} & \textbf{0.319} & \textbf{0.371} \\
+  ETTm1   & 0.3594 & 0.3858 & 0.3597 & 0.3877 & 0.3967 & 0.4239 & 0.3659 & 0.3926 & \textbf{0.3518} & \underline{0.3817} & \underline{0.3525} & \textbf{0.3768} \\
+  ETTm2   & 0.2668 & 0.3215 & 0.2768 & 0.3306 & 0.3098 & 0.3575 & 0.2790 & 0.3318 & \underline{0.2573} & \underline{0.3151} & \textbf{0.2513} & \textbf{0.3135} \\
+  Weather & 0.2339 & 0.2722 & 0.2311 & 0.2699 & 0.2860 & 0.3171 & 0.2357 & 0.2788 & \underline{0.2297} & \underline{0.2657} & \textbf{0.2233} & \textbf{0.2635} \\
+  Traffic & 0.4472 & 0.3209 & 0.4404 & 0.3106 & 0.5942 & 0.3357 & 0.4606 & 0.3100 & \textbf{0.3976} & \textbf{0.2669} & \underline{0.3988} & \underline{0.2695} \\
+  Elec.   & 0.1754 & 0.2738 & 0.1695 & 0.2684 & 0.2377 & 0.3248 & 0.1829 & 0.2826 & \underline{0.1616} & \underline{0.2538} & \textbf{0.1593} & \textbf{0.2505} \\
+  Solar   & \underline{0.2414} & \underline{0.2795} & \underline{0.2345} & \textbf{0.2754} & 0.2621 & 0.3000 & \textbf{0.2156} & 0.2860 & -- & -- & -- & -- \\
+  \bottomrule
+\end{tabular}
+
+\vfill
+{\fontsize{6}{7.2}\selectfont\textcolor{muted}{\textit{All models use $L=336$. \textbf{Bold} = best and
+\underline{underline} = second best within each row, over the models
+present. PatchTST/42 and HDMixer do not report Solar at $L=336$.
+Our backbones: \texttt{seq\_len=336, batch=32, lr=1e-3}.}}}
+\end{frame}
+
+\begin{frame}{Hyperparameter tuning}
+\small
+\textit{Tuning shows whether the edge of SOR is architectural or just a lucky default.}\par
+\vspace{0.5em}
+{\setlength{\fboxsep}{7pt}\setlength{\fboxrule}{0.45pt}%
+\noindent\color{black}\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\textbf{Why we tune}\par\vspace{0.25em}
+The hand-picked configuration on the previous slide is a fair reference, but it is not optimal for any specific dataset.
+\end{minipage}}}
+\vspace{0.6em}
+
+\textbf{What we tune, and why}\par\vspace{0.3em}
+{\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}L{2.6cm} L{9.8cm}@{}}
+  \texttt{seq\_len}      & History length; more cycles versus noise and cost. \\
+  \texttt{patch\_len}    & Patch granularity; should align with the dominant period. \\
+  \texttt{stride\_ratio} & Patch overlap; sets token count, receptive field and head size. \\
+  \texttt{sor\_dropout}  & Main regularizer; balances under- and overfitting. \\
+  \texttt{lr}            & Optimization stability and convergence within the tuning budget. \\
+  \texttt{weight\_decay} & Global regularization; interacts with dropout and dataset size. \\
+\end{tabular}}
+\vspace{0.6em}
+
+\textbf{Result on ETTh2: 201-trial random search}\par\vspace{0.3em}
+{\small The best tuned SOR reduces test MSE by about \textbf{2.9\%} and MAE by about \textbf{0.9\%}. The gain survives fresh-seed validation.}
+\end{frame}
+
+%######################################################################
+% PART 6 --- DISCUSSION, OUTLOOK AND CLOSING
+%######################################################################
+
+\begin{frame}{What did not work: the current CNN}
+\small
+\textit{Added convolutional processing did not improve the forecasts.}\par
+\vspace{0.55em}
+{\setlength{\fboxsep}{7pt}\setlength{\fboxrule}{0.45pt}%
+\noindent\color{black}\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\textbf{Our interpretation}\par\vspace{0.25em}
+The current CNN has the highest average MSE among our backbones on each dataset. We would deprioritize this configuration in the next round.
+\end{minipage}}}
+\vspace{0.75em}
+\begin{itemize}
+  \setlength{\itemsep}{0.55em}
+  \item \textbf{Limited temporal context:} Two kernel-5 layers see nine samples locally. Interpolation resizes the output without learning a global history-to-future mapping.
+  \item \textbf{Extra processing:} Hidden feature maps add computation and memory relative to Linear, even though this CNN has fewer parameters.
+  \item \textbf{Possible overfitting:} Nonlinear filters may learn local noise after cycle removal, improving training fit without improving unseen forecasts.
+\end{itemize}
+\vspace{0.35em}
+{\footnotesize\textcolor{muted}{Overfitting check: falling training loss with rising or persistently high validation loss. Test MSE alone does not establish the cause.}}
+\end{frame}
+
+\begin{frame}{What worked better, and why}
+\small
+\textit{The useful complexity depends on what remains after cycle removal.}\par
+\vspace{0.55em}
+{\setlength{\fboxsep}{7pt}\setlength{\fboxrule}{0.45pt}%
+\noindent\color{black}\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\textbf{A stronger backbone needs to improve the residual forecast}\par\vspace{0.25em}
+Cycle tables already handle recurring patterns. The remaining task may benefit more from the right temporal structure than from additional nonlinear layers.
+\end{minipage}}}
+\vspace{0.75em}
+\begin{itemize}
+  \setlength{\itemsep}{0.65em}
+  \item \textbf{Linear on ETT:} Its direct mapping uses the full input window. If cycle removal leaves a simple residual, extra nonlinear processing may add little value.
+  \item \textbf{MLP on Traffic and Electricity:} It also uses the full window, with nonlinear interactions that may capture more complex residual behavior.
+  \item \textbf{SOR on Solar:} Patch mixing and DCT conditioning may help track changes in local shape and frequency content.
+\end{itemize}
+\vspace{0.35em}
+{\footnotesize\textcolor{muted}{These are explanations to test with ablations. The scores show which configuration worked, but do not identify the reason on their own.}}
+\end{frame}
+
+\begin{frame}{What comes next?}
+\large
+{\small\textit{Explore combinations and a longer input window.}}\par
+\vspace{1.35em}
+\textcolor{accent}{\textbf{1}}\quad \textbf{Test backbone combinations}
+\par\vspace{0.45em}
+{\normalsize Combine MLP and CNN to test whether local features improve the global residual forecast.}
+
+\vspace{1.5em}
+\textcolor{accent}{\textbf{2}}\quad \textbf{Try sequence length 512}
+\par\vspace{0.45em}
+{\normalsize Compare $L=512$ with the current $L=336$ to assess the value of longer history.}
+
+\vspace{1.25em}
+{\footnotesize\textcolor{muted}{Keep splits and forecast horizons fixed. Compare validation MSE/MAE, runtime and memory before selecting the final model.}}
+\end{frame}
+
+\begin{frame}{Conclusion and questions}
+\normalsize
+\textit{The best forecasting design depends on the patterns left after cycle removal.}\par
+\vspace{1.0em}
+\begin{itemize}
+  \setlength{\itemsep}{0.85em}
+  \item \textbf{No single backbone leads everywhere.} Linear, MLP and SOR each performed best on different datasets in our comparison.
+  \item \textbf{More complexity does not guarantee better forecasts.}
+\end{itemize}
+\vspace{1.1em}
+{\setlength{\fboxsep}{9pt}\setlength{\fboxrule}{0.45pt}%
+\noindent\color{black}\fbox{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\centering\large\textbf{Thank you. Any questions?}
+\end{minipage}}}
+\end{frame}
+
+\end{document}
