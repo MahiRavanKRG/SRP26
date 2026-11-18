@@ -26,7 +26,11 @@ dependencies = [
 
 [project.optional-dependencies]
 cluster = ["paramiko>=3.5.0"]
-foundation = ["accelerate>=1.0.0", "transformers>=4.45.0"]
+foundation = [
+    "accelerate>=1.0.0",
+    "timesfm>=3.0.2",
+    "transformers>=4.45.0",
+]
 dev = ["pytest>=8.0.0"]
 
 [tool.setuptools.packages.find]

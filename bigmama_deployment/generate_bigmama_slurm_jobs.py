@@ -48,6 +48,8 @@ def generate_slurm_scripts():
 
 # Environment setup
 export HF_HOME="${{HF_HOME:-$HOME/.cache/huggingface}}"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
 mkdir -p "$HF_HOME"
 mkdir -p logs results/cluster_results
 
