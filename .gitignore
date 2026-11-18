@@ -37,6 +37,7 @@ results/transform_ablation/*.json
 !results/transform_ablation/transform_ablation_summary.csv
 !results/transform_ablation/transform_ablation_report.md
 results/transform_ablation_smoke/
+results/dsof_sd/
 
 # Personal session logs & local archives (excluded from GitHub)
 .ai_history/
