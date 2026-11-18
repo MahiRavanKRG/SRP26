@@ -51,7 +51,7 @@ The old experiments are not wrong because of one bug. They are **not comparable 
 | Metrics | MSE, MAE (primary); skill vs seasonal naive; diagnostics per §3a | — |
 | Naive baselines | Repeat-last and seasonal-naive always reported | Forecasting practice (Hyndman & Athanasopoulos, FPP3): a model must beat naive to be useful |
 | Seeds | 3 fixed seeds `[2024, 2025, 2026]` (minimum; 5 if budget allows) | Protocol §4.6 |
-| Hyperparameters | Same budget for every trained model: LR ∈ {1e-4, 5e-4, 1e-3} chosen on **validation** MSE (seed 2024), then frozen for all seeds | Fair-comparison practice (TFB, BasicTS) |
+| Hyperparameters | Same budget for every trained model: LR ∈ {1e-4, 5e-4, 1e-3, 5e-3} chosen on **validation** MSE (seed 2024), then frozen for all seeds | Fair-comparison practice (TFB, BasicTS) |
 | Significance | **Primary (all cells):** seed-level mean ± std, plus win counts across seeds. **Secondary (only for the few comparisons claimed in the paper):** Diebold–Mariano test with autocorrelation-robust (HAC) variance on per-window losses, Holm correction | Mean ± std is the LTSF norm; Diebold & Mariano (1995) is standard in classical forecasting and an added strength, not a requirement |
 | Published baselines | Shown in a **separate** table, clearly labelled with source and their own L; never mixed into the controlled table | Protocol §4.7 |
 
@@ -173,3 +173,25 @@ uv run python -m srp26.bench.report      # regenerates every table
 2. Tier 3 exploratory tracks: **archive as exploratory, do not rerun**, or rerun.
 3. PatchTST: **rerun in harness**; HDMixer: **cite only**.
 4. Cluster login: keep password in `.env` (works today) or switch to an SSH key (recommended; set up by the user).
+
+---
+
+## 8. Implementation record (P0/P1, 2026-11-18)
+
+| Item | Decision |
+|---|---|
+| Harness | `srp26/bench/` (`env`, `data`, `metrics`, `models`, `train`, `run`, `grid`); gate tests `tests/test_bench.py` (16 tests) |
+| Environment | Python 3.13 + `uv.lock`. PyTorch pinned to **2.8.0+cu128** (the previous 2.6.0+cu124 cannot run on Bigmama's Blackwell RTX PRO 6000, sm_120). Local env lives at `D:\uni\.envs\srp26-v2` (`UV_PROJECT_ENVIRONMENT`), outside the repo, because the sandbox leaves a low-integrity ACL on the repo root that cripples new executables created inside it |
+| Datasets | SHA-256 in `data_sets/CHECKSUMS.sha256`; cluster copies verified identical |
+| Trainer (all trained models) | Adam, cosine LR over `max_epochs`, FP32, MSE loss, batch 32, 30 epochs, patience 5, best-val checkpoint restore |
+| LR selection | Grid {1e-4, 5e-4, 1e-3, 5e-3} (5e-3 added: CycleNet/DLinear reference scripts use LRs above 1e-3), seed 2024, validation MSE only, test never evaluated. Selected once on Bigmama, then **the same `configs/v2/selected_lr.json` is used by both result sets** so they differ only in hardware |
+| CycleNet-Pro | Imported unchanged from `models/cyclenet/cyclenet_pro_Full.py`: period discovery on the mean of raw training channels (FFT top-5 → ACF filter → multi-cycle gain test); channel dependence from the correlation diagnostic. `experiment_cyclenet.py` used the last channel instead; v2 follows the Full (four-backbone) version. Detected periods are stored in every result |
+| Period control | `cyclenet_fixed` = the same CycleNet-Pro code with the CycleNet-paper cycle length (24/96/144/168), linear backbone, no channel mixing |
+| Linear / DLinear / transforms | `TransformForecaster` (parameter-free RevIN + transform + shared linear head); `linear` = identity, `dlinear` = moving-average decomposition |
+| PatchTST | Re-implementation of PatchTST/42 (patch 16, stride 8, 3 layers, BatchNorm); ETTh1/2: d_model 16, heads 4, d_ff 128, dropout 0.3; others: 128/16/256/0.2. LR 1e-4, 100 epochs, patience 10, batch 128 (32 on Electricity/Traffic/Solar); not LR-tuned. No residual attention (documented deviation) |
+| Seasonal naive | Repeat the last day of the lookback; also evaluated inside every run so `skill_mse` is per run |
+| Bigmama | Every job pinned to `--gres=gpu:6000:1` (RTX PRO 6000) so the whole set comes from one GPU type; code shipped as `git archive` of a clean commit (`COMMIT` file recorded in every result) |
+| Local set | All final runs except PatchTST on Electricity/Traffic/Solar (6 GB laptop GPU) |
+| Order | Tier 1 + transform ablation first (this grid). Tier 2 foundation models and DSOF-SD follow in a second grid once Tier 1 is complete |
+| Band split (amended) | MSE = **level** (error in the window mean, DC bin) + slow + daily + fast. The old DSOF low band mixed level error into the numerator but excluded it from the denominator (slow FVU 2.1 in smoke test); level is now its own component with no FVU |
+| Smoke test | All 16 models run end-to-end on ETTh1 H96 (laptop). CycleNet-Pro auto-selects period [24] and no channel mixing on ETTh1, so it is numerically identical to `cyclenet_fixed` there |

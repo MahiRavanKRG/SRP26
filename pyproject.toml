@@ -20,7 +20,7 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "scipy>=1.17.1",
     "tabulate>=0.10.0",
-    "torch>=2.0.0",
+    "torch==2.8.0",
     "wandb>=0.30.0",
 ]
 
@@ -42,7 +42,7 @@ pythonpath = ["."]
 
 [[tool.uv.index]]
 name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu124"
+url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [tool.uv.sources]

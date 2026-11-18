@@ -8,7 +8,7 @@ wheels/
 .pytest_cache/
 
 # Virtual environments
-.venv/
+.venv*/
 
 # Raw benchmark datasets (re-fetch with `uv run python data_sets/download_data.py`)
 data_sets/*.csv
@@ -68,3 +68,4 @@ desktop.ini
 *.secret*
 *credentials*
 bigmama_credentials.json
+results/v2/smoke/
