@@ -27,6 +27,17 @@ logs/
 *.err
 srp26.egg-info/
 
+# Auto-generated Slurm cluster batch scripts (re-generate via python scripts)
+bigmama_deployment/slurm_scripts/
+
+# Experiment raw data arrays and granular dumps (keep central summary CSVs/MDs)
+*.npy
+results/**/raw/
+results/transform_ablation/*.json
+!results/transform_ablation/transform_ablation_summary.csv
+!results/transform_ablation/transform_ablation_report.md
+results/transform_ablation_smoke/
+
 # Personal session logs & local archives (excluded from GitHub)
 .ai_history/
 _local_archive/
@@ -45,7 +56,8 @@ proposed model.md
 *.fls
 *.fdb_latexmk
 
-# OS files
+# OS & IDE files
+.vscode/
 .DS_Store
 Thumbs.db
 desktop.ini
