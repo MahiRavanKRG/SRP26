@@ -22,6 +22,7 @@ The old experiments are not wrong because of one bug. They are **not comparable 
 | C8 | **Overstated significance.** Wilcoxon test over overlapping stride-1 test windows treated as independent. | `scripts/aggregate_transform_ablation.py` | p < 1e-6 is not trustworthy. |
 | C9 | **Baselines mixed from different sources** (published numbers with L=96 and our runs with L=336 in one table), and an unsourced DLinear 0.6050. | `paper/main.tex` tables, abstract | Unfair comparison. |
 | C10 | **"Automated period discovery" has no control.** The original CycleNet with the known period (24/96/144/168) was never run in the same harness. | — | The core claim (automation helps or is harmless) is untested. |
+| C11 | **Diagnostic metrics misdefined or misread** (audit 2026-11-18, details in §3a): fixed 0.1/0.4 cycles/step bands put the daily and weekly cycles in the *low* band, not "mid"; FVU ≥ 1 in unpredictable bands read as failure although an MSE-optimal forecast scores exactly 1.0; LSD rewards wrong forecasts (optimal 56.1 dB vs optimal+fake noise 4.7 dB) and has 4 different implementations; rolling failure rate averages 69%, is identical across models and correlates 0.88 with MSE; coherence is always 1.0 with one segment (even vs pure noise). | `srp26/spectral.py`, `cluster/`, `fresh_experiments/` | Diagnostic conclusions in the paper are not supported as stated. |
 
 ---
 
@@ -47,12 +48,63 @@ The old experiments are not wrong because of one bug. They are **not comparable 
 | Splits | ETT 12/4/4 months; others 70/10/20, chronological | Autoformer/PatchTST convention |
 | Scaling | StandardScaler fit on train only; metrics on the scaled data | Standard LTSF reporting |
 | Test windows | **All** stride-1 windows; `drop_last=False` on test | TFB (Qiu et al., VLDB 2024) flagged `drop_last` as a known benchmark bug |
-| Metrics | MSE, MAE (primary); DSOF band FVU/LSD (diagnostic) | — |
+| Metrics | MSE, MAE (primary); skill vs seasonal naive; diagnostics per §3a | — |
 | Naive baselines | Repeat-last and seasonal-naive always reported | Forecasting practice (Hyndman & Athanasopoulos, FPP3): a model must beat naive to be useful |
 | Seeds | 3 fixed seeds `[2024, 2025, 2026]` (minimum; 5 if budget allows) | Protocol §4.6 |
 | Hyperparameters | Same budget for every trained model: LR ∈ {1e-4, 5e-4, 1e-3} chosen on **validation** MSE (seed 2024), then frozen for all seeds | Fair-comparison practice (TFB, BasicTS) |
 | Significance | **Primary (all cells):** seed-level mean ± std, plus win counts across seeds. **Secondary (only for the few comparisons claimed in the paper):** Diebold–Mariano test with autocorrelation-robust (HAC) variance on per-window losses, Holm correction | Mean ± std is the LTSF norm; Diebold & Mariano (1995) is standard in classical forecasting and an added strength, not a requirement |
 | Published baselines | Shown in a **separate** table, clearly labelled with source and their own L; never mixed into the controlled table | Protocol §4.7 |
+
+---
+
+## 3a. Metric set (v2)
+
+One implementation per metric, in `srp26/bench/metrics.py`, used by every model and every track. All metrics are computed on the full test set in the train-scaled space.
+
+### Primary (accuracy)
+
+| Metric | Definition | Why |
+|---|---|---|
+| MSE, MAE | Mean over windows, horizon steps, channels | LTSF standard; comparable to published tables |
+| Skill vs seasonal naive | `1 − MSE_model / MSE_snaive` (and the MAE analogue, MASE-style). Seasonal period = the dataset's known daily period | Forecasting-practice standard (Hyndman & Athanasopoulos, FPP3); puts all datasets on one scale; > 0 means the model beats naive |
+
+### Diagnostic (the frequency lens: *which time scale* a model gets wrong)
+
+| Metric | Definition | Interpretation rule |
+|---|---|---|
+| **Band MSE (Parseval)** | Exact split of MSE over the H-length forecast window into 3 bands defined by **period in real time**, per dataset (below). `mse_slow + mse_daily + mse_fast = MSE` (asserted to 1e-8) | Report each band's MSE and its share of total MSE |
+| **Band FVU** | `mse_band / true_power_band` (slow band excludes the per-window mean) | **1.0 = predicts nothing in that band**, which is *correct* for unpredictable content. Only FVU clearly > 1 (adds wrong content) or < 1 (captures real structure) is informative. Never call FVU ≈ 1 a failure by itself |
+| **Band energy ratio** | `pred_power_band / true_power_band` | < 1 = smoothing, which is expected for MSE-trained models. Descriptive, not a score |
+| **Error vs lead time** | MSE at each horizon step 1…H (mean over windows/channels) | How fast accuracy degrades with distance; saved as a vector |
+| **Error over test time** | Per-window MSE across the test period (saved `.npy`), plotted against calendar time, alongside the seasonal-naive curve | Localizes *when* a model breaks (regime shifts); replaces the rolling failure rate |
+
+**Physical bands** (period *T* in hours; converted to steps per dataset; DC/mean goes in "slow"):
+
+| Band | Period | Contains |
+|---|---|---|
+| slow | T > 36 h | trend, level, multi-day and weekly |
+| daily | 8 h ≤ T ≤ 36 h | 24 h cycle and its 12 h harmonic |
+| fast | T < 8 h | intra-day fluctuation / noise |
+
+Sampling: ETTh*, Electricity, Traffic 1 h; ETTm* 15 min; Weather, Solar 10 min. The forecast window resolves a period only if T ≤ H·Δt. If the window is shorter than ~1 day (Weather/Solar at H=96 = 16 h), the daily band is not resolvable and is reported as merged into "slow" (marked in tables), never silently.
+
+### Secondary (reported in an appendix only, clearly labelled)
+
+| Metric | Rule |
+|---|---|
+| LSD | One implementation only (rFFT of the forecast window, dB, per band). Labelled **"spectral realism"**, never "fidelity" or "accuracy", and always shown next to MSE, because it ignores phase and rewards adding noise |
+
+### Retired (not computed in v2)
+
+| Metric | Reason |
+|---|---|
+| Rolling failure rate / mean peak rolling MSE | Self-referential threshold; ~69% for every model; corr 0.88 with MSE |
+| Spectral coherence (`spectral_coherence_analysis`) | One Welch segment ⇒ identically 1.0 |
+| Quarter-split bands (`compute_spectral_diagnostics`), Welch-LSD variants | Duplicate, inconsistent definitions |
+
+### Metric tests (part of P1)
+
+Parseval sum equals MSE; perfect forecast ⇒ all band MSE = 0; MSE-optimal smooth forecast of sinusoid+noise ⇒ FVU_fast ≈ 1; known 24 h sinusoid lands in the "daily" band for every dataset's Δt; seasonal naive scores skill = 0 against itself.
 
 ---
 
@@ -94,7 +146,7 @@ HDMixer: cited from AAAI-24 in the published-baselines table only (not re-implem
 | Phase | What | Exit criterion |
 |---|---|---|
 | **P0 Clean bench** | Commit current work; move old results to `results/archive_pre_v2/`; write dataset checksums; rebuild cluster env with Python 3.13 + `uv sync --frozen` | Same `uv.lock` hash on both machines; clean git tree |
-| **P1 Unified harness** | `srp26/bench/` with config loader, single trainer, evaluator, result schema with provenance; port every model; `configs/` for the grid | Tests pass: no-leakage (scaler/test boundary), split sizes, Parseval identity. Sanity check (non-blocking): same seed twice on one machine ⇒ same MSE |
+| **P1 Unified harness** | `srp26/bench/` with config loader, single trainer, evaluator, result schema with provenance; port every model; `configs/` for the grid | Tests pass: no-leakage (scaler/test boundary), split sizes, metric tests (§3a). Sanity check (non-blocking): same seed twice on one machine ⇒ same MSE |
 | **P2 Calibration** | ETTh1 H96, all Tier-1 models × 3 seeds, locally and on Bigmama | Laptop vs cluster means agree **within the seed spread** (differences documented) |
 | **P3 LR selection** | Validation-only LR grid, seed 2024 | Frozen `configs/selected_hparams.yaml` committed |
 | **P4 Full grid** | Submit Tier 1, then Tier 2 on Bigmama as Slurm array jobs | Every pre-registered run present (completeness check script) |
