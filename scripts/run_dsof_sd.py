@@ -157,11 +157,14 @@ def main() -> None:
     parser.add_argument("--student_type", type=str, default="sor", choices=["sor", "linear", "mlp", "cnn", "cyclenet_lite"])
     parser.add_argument("--teacher", type=str, default="fourier", choices=["fourier", "timesfm"])
     parser.add_argument("--teacher_cache", type=str, default="")
-    parser.add_argument("--gate_mode", type=str, default="hard", choices=["hard", "soft"])
+    parser.add_argument("--gate_mode", type=str, default="hard", choices=["hard", "soft", "lsd", "benefit", "consensus"])
     parser.add_argument("--warm_epochs", type=int, default=5)
+    parser.add_argument("--benefit_probe_epochs", type=int, default=3)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--lambda_max", type=float, default=0.2)
     parser.add_argument("--lambda_phase", type=float, default=0.0)
+    parser.add_argument("--lambda_anchor", type=float, default=0.0)
+    parser.add_argument("--recalibrate_teacher", action="store_true")
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--seed", type=int, default=2024)
     parser.add_argument("--seeds", type=int, nargs="*", default=None)
@@ -231,11 +234,14 @@ def main() -> None:
 
         cfg = DSOFSDConfig(
             gate_mode=args.gate_mode,
+            benefit_probe_epochs=args.benefit_probe_epochs,
             warm_epochs=args.warm_epochs,
             distill_epochs=args.epochs,
             lr=args.lr,
             lambda_max=args.lambda_max,
             lambda_phase=args.lambda_phase,
+            lambda_anchor=args.lambda_anchor,
+            recalibrate_teacher=args.recalibrate_teacher,
         )
         trainer = DSOFSDTrainer(student=student, config=cfg, device=device)
         report = trainer.fit_and_evaluate(train_loader, val_loader, test_loader)

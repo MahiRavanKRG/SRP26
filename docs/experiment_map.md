@@ -81,6 +81,17 @@
 - **File:** `fresh_experiments/results/traffic_lora_results.md`
 - **Result:** FCMath zero-shot **0.6755** beats FCMath LoRA-finetuned 0.9405 — **LoRA fine-tuning hurt.** CycleNet still best (0.5263).
 
+### Track 8 — DSOF-SD Dual-Domain Distillation (Nov 2026)
+- **Files:** `results/dsof_sd/`, `results/dsof_sd_summary.md`
+- **Setup:** Distilling foundation teacher (TimesFM 2.5) into lightweight students (SOR, 1D-CNN, Linear) with dual-domain filtering on ETTh1/ETTh2 across 3 seeds `[2024, 2025, 2026]`.
+- **Result:** SOR student achieves lowest LSD (spectral fidelity) while closing 60-80% of the MSE gap to the 200M parameter teacher.
+
+### Track 9 — Comprehensive Transform-Ablation Benchmark Suite (Nov 2026)
+- **Files:** `results/transform_ablation/transform_ablation_summary.csv`, `results/transform_ablation/transform_ablation_report.md`
+- **Central Master Record:** [`results/README.md`](file:///d:/uni/SRP26/results/README.md)
+- **Setup:** 7 datasets (`ETTh1`, `ETTh2`, `ETTm1`, `ETTm2`, `weather`, `electricity`, `traffic`), 4 horizons ($H \in \{96, 192, 336, 720\}$), 6 transforms (`identity`, `rfft`, `dct`, `dwt_haar`, `dwt_db4`, `stft`) + `dlinear`, evaluated across all 3 seeds `[2024, 2025, 2026]` (**483 runs total**).
+- **Result:** Fully executed, multi-seed aggregated with Parseval subband FVU (low/mid/high), Energy Ratio, LSD, and rolling failure rates. Confirms subtle, specialized advantages (~1-2%) of frequency transforms depending on dataset non-stationarity.
+
 ---
 
 ## 3. Key results at a glance (H=96)

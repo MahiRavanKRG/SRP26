@@ -46,8 +46,9 @@ class DSOFSDConfig:
     low_cutoff: float = 0.1
     high_cutoff: float = 0.4
     fs: float = 1.0
-    gate_mode: str = "hard"  # "hard" | "soft"
+    gate_mode: str = "hard"  # "hard" | "soft" | "lsd" | "consensus" | "benefit"
     soft_alpha: float = 5.0
+    benefit_probe_epochs: int = 3  # short distillation per band for G4
     warm_epochs: int = 5
     distill_epochs: int = 25
     patience: int = 7
@@ -55,6 +56,8 @@ class DSOFSDConfig:
     weight_decay: float = 1e-3
     lambda_max: float = 0.2
     lambda_phase: float = 0.0
+    lambda_anchor: float = 0.0  # ground-truth spectral anchor weight
+    recalibrate_teacher: bool = False  # amplitude recalibration
     eps: float = 1e-6
 
 
@@ -220,9 +223,21 @@ class DSOFSpectralLoss(nn.Module):
     """
     Phase 1-2 band-gated spectral distillation objective.
 
-    Freezes trust gates ``g_b`` after comparing teacher vs. warm-start student
-    Parseval FVU on the calibration split, then penalizes squared unified rFFT LSD
-    strictly on trusted bands.
+    Supports multiple gate calibration modes:
+    - ``"hard"``: ``g_b = 1[FVU_b^T < FVU_b^S]`` (original FVU gate)
+    - ``"soft"``: sigmoid-smoothed FVU gate
+    - ``"lsd"``: G1 spectral-fidelity gate — ``g_b = 1[LSD_b^T < LSD_b^S]``
+    - ``"consensus"``: G5 strict gate — ``g_b = 1[(FVU_T < FVU_S) AND (LSD_T < LSD_S)]``
+    - ``"benefit"``: G4 empirical per-band probe — keeps band only if short
+      distillation *actually* improves both band LSD and band MSE vs. warm
+
+    When ``config.recalibrate_teacher`` is True, teacher FFT amplitudes are
+    rescaled per band so ``E_T,b = E_true,b`` before computing the spectral
+    loss, removing MMSE amplitude-shrinkage bias.
+
+    When ``config.lambda_anchor > 0``, a ground-truth spectral fidelity term
+    ``lambda_anchor * LSD(y_student, y_true)`` is added to prevent the student
+    from drifting into amplitude collapse.
     """
 
     def __init__(self, config: DSOFSDConfig) -> None:
@@ -243,7 +258,7 @@ class DSOFSpectralLoss(nn.Module):
         y_teacher: torch.Tensor,
         y_student_warm: torch.Tensor,
     ) -> Dict[str, float]:
-        """Compute and freeze per-band trust gates ``g_b`` from calibration FVU."""
+        """Compute and freeze per-band trust gates ``g_b`` from calibration FVU/LSD."""
         t_metrics = dsof_band_metrics_torch(
             y_true, y_teacher,
             fs=self.config.fs,
@@ -261,20 +276,35 @@ class DSOFSpectralLoss(nn.Module):
 
         fvu_t_summary: Dict[str, float] = {}
         fvu_s_summary: Dict[str, float] = {}
+        lsd_t_summary: Dict[str, float] = {}
+        lsd_s_summary: Dict[str, float] = {}
         gates_out: Dict[str, float] = {}
 
         for idx, band in enumerate(BANDS):
             fvu_t = float(t_metrics["fvu"][band].item())
             fvu_s = float(s_metrics["fvu"][band].item())
+            lsd_t = float(t_metrics["lsd"][band].item())
+            lsd_s = float(s_metrics["lsd"][band].item())
             fvu_t_summary[band] = fvu_t
             fvu_s_summary[band] = fvu_s
+            lsd_t_summary[band] = lsd_t
+            lsd_s_summary[band] = lsd_s
 
             if self.config.gate_mode == "hard":
                 g_val = 1.0 if fvu_t < fvu_s else 0.0
             elif self.config.gate_mode == "soft":
                 g_val = float(torch.sigmoid(torch.tensor(self.config.soft_alpha * (fvu_s - fvu_t))).item())
+            elif self.config.gate_mode == "lsd":
+                # G1: spectral-fidelity gate — keep only if teacher's spectrum is closer to truth
+                g_val = 1.0 if lsd_t < lsd_s else 0.0
+            elif self.config.gate_mode == "consensus":
+                # G5: require BOTH FVU and LSD advantage
+                g_val = 1.0 if (fvu_t < fvu_s and lsd_t < lsd_s) else 0.0
+            elif self.config.gate_mode == "benefit":
+                # G4: placeholder — actual gates set by DSOFSDTrainer._calibrate_benefit_gates
+                g_val = 0.0
             else:
-                raise ValueError(f"Unknown gate_mode: {self.config.gate_mode!r}. Expected 'hard' or 'soft'.")
+                raise ValueError(f"Unknown gate_mode: {self.config.gate_mode!r}.")
 
             self.gate_vector[idx] = g_val
             gates_out[band] = g_val
@@ -283,9 +313,36 @@ class DSOFSpectralLoss(nn.Module):
         self.calibration_summary = {
             "fvu_teacher": fvu_t_summary,
             "fvu_warm_student": fvu_s_summary,
+            "lsd_teacher": lsd_t_summary,
+            "lsd_warm_student": lsd_s_summary,
             "gates": gates_out,
         }
         return gates_out
+
+    def _recalibrate_teacher_fft(
+        self,
+        true_fft: torch.Tensor,
+        teacher_fft: torch.Tensor,
+        masks: Dict[str, torch.Tensor],
+    ) -> torch.Tensor:
+        """
+        Rescale teacher FFT amplitudes per band to match true band energy.
+
+        ``A_T^recal(k) = A_T(k) * sqrt(E_true,b / E_T,b)`` for ``k in band b``.
+        This preserves the teacher's spectral *shape* within each band while
+        removing the MMSE amplitude-shrinkage bias.
+        """
+        recal_fft = teacher_fft.clone()
+        eps = self.config.eps
+        for band, mask in masks.items():
+            if not torch.any(mask):
+                continue
+            # Band energy: mean |FFT|^2 over masked frequencies
+            e_true_b = torch.mean(true_fft[..., mask].abs() ** 2).clamp(min=eps)
+            e_teacher_b = torch.mean(teacher_fft[..., mask].abs() ** 2).clamp(min=eps)
+            scale = torch.sqrt(e_true_b / e_teacher_b)
+            recal_fft[..., mask] = teacher_fft[..., mask] * scale
+        return recal_fft
 
     def forward(
         self,
@@ -295,42 +352,69 @@ class DSOFSpectralLoss(nn.Module):
         lam_spec: float,
         lam_phase: float = 0.0,
     ) -> Tuple[torch.Tensor, Dict[str, float]]:
-        """Compute ``L_time + lam_spec * L_spec + lam_phase * L_phase``."""
+        """Compute ``L_time + lam_spec * L_spec [+ lam_anchor * L_anchor] [+ lam_phase * L_phase]``."""
         loss_time = F.mse_loss(y_student, y_true)
-        spec_metrics = dsof_band_metrics_torch(
-            y_teacher, y_student,
+
+        # Compute FFTs for student and teacher
+        y_s = (y_student if y_student.ndim == 3 else y_student.unsqueeze(-1)).float()
+        y_t_target = (y_teacher if y_teacher.ndim == 3 else y_teacher.unsqueeze(-1)).float()
+        y_truth = (y_true if y_true.ndim == 3 else y_true.unsqueeze(-1)).float()
+        horizon = y_s.shape[1]
+
+        masks, _ = band_masks_rfft_torch(
+            horizon,
             fs=self.config.fs,
             low_cutoff=self.config.low_cutoff,
             high_cutoff=self.config.high_cutoff,
-            eps=self.config.eps,
+            device=y_s.device,
         )
+
+        s_perm = y_s.permute(0, 2, 1).contiguous()
+        t_perm = y_t_target.permute(0, 2, 1).contiguous()
+        truth_perm = y_truth.permute(0, 2, 1).contiguous()
+
+        student_fft = torch.fft.rfft(s_perm, dim=-1)
+        teacher_fft = torch.fft.rfft(t_perm, dim=-1)
+        true_fft = torch.fft.rfft(truth_perm, dim=-1)
+
+        # Amplitude recalibration: adjust teacher amplitudes to match true band energy
+        if self.config.recalibrate_teacher:
+            teacher_fft = self._recalibrate_teacher_fft(true_fft, teacher_fft, masks)
+
+        eps = self.config.eps
+        log_amp_student = torch.log(student_fft.abs() + eps)
+        log_amp_teacher = torch.log(teacher_fft.abs() + eps)
+        sq_log_diff = (log_amp_student - log_amp_teacher) ** 2
 
         loss_spec = y_student.new_zeros(())
         for idx, band in enumerate(BANDS):
-            loss_spec = loss_spec + self.gate_vector[idx] * spec_metrics["lsd_sq"][band]
+            mask = masks[band]
+            if torch.any(mask):
+                loss_spec = loss_spec + self.gate_vector[idx] * torch.mean(sq_log_diff[..., mask])
+
+        # Ground-truth spectral anchor: LSD(y_student, y_true)
+        loss_anchor = y_student.new_zeros(())
+        if self.config.lambda_anchor > 0.0:
+            log_amp_true = torch.log(true_fft.abs() + eps)
+            sq_log_truth_diff = (log_amp_student - log_amp_true) ** 2
+            loss_anchor = torch.mean(sq_log_truth_diff)
 
         loss_phase = y_student.new_zeros(())
         if lam_phase > 0.0:
-            masks, _ = band_masks_rfft_torch(
-                y_student.shape[1],
-                fs=self.config.fs,
-                low_cutoff=self.config.low_cutoff,
-                high_cutoff=self.config.high_cutoff,
-                device=y_student.device,
-            )
-            phase_t = torch.angle(spec_metrics["true_fft"])
-            phase_s = torch.angle(spec_metrics["pred_fft"])
+            phase_t = torch.angle(teacher_fft)
+            phase_s = torch.angle(student_fft)
             phase_diff = 1.0 - torch.cos(phase_s - phase_t)
             for idx, band in enumerate(BANDS):
                 mask = masks[band]
                 if torch.any(mask):
                     loss_phase = loss_phase + self.gate_vector[idx] * torch.mean(phase_diff[..., mask])
 
-        total = loss_time + lam_spec * loss_spec + lam_phase * loss_phase
+        total = loss_time + lam_spec * loss_spec + self.config.lambda_anchor * loss_anchor + lam_phase * loss_phase
         info = {
             "loss_total": float(total.item()),
             "loss_time": float(loss_time.item()),
             "loss_spec": float(loss_spec.item()),
+            "loss_anchor": float(loss_anchor.item()),
             "loss_phase": float(loss_phase.item()),
         }
         return total, info
@@ -446,7 +530,7 @@ def check_hypothesis(report: Dict[str, object]) -> Dict[str, object]:
         return {
             "status": "no_transfer",
             "passed": False,
-            "reason": "All calibration gates g_b == 0 (teacher had no FVU advantage on any band).",
+            "reason": "All calibration gates g_b == 0 (teacher showed no per-band advantage under the active gate criterion).",
         }
 
     band_improved = {
@@ -514,6 +598,85 @@ class DSOFSDTrainer:
                 total_n += int(y_v.numel())
         return total_sq / max(1, total_n)
 
+    def _calibrate_benefit_gates(
+        self,
+        train_loader: DataLoader,
+        val_loader: DataLoader,
+        warm_val_metrics: Dict[str, object],
+    ) -> Dict[str, float]:
+        """
+        G4 benefit gate: for each band, run a short distillation with only that
+        band active, then keep it iff *both* band LSD and band MSE improve on
+        the validation set relative to the warm-start student.
+        """
+        probe_epochs = self.config.benefit_probe_epochs
+        gates: Dict[str, float] = {}
+        probe_details: Dict[str, Dict[str, float]] = {}
+        warm_bands = warm_val_metrics["bands"]  # type: ignore[index]
+
+        for idx, band in enumerate(BANDS):
+            # Reset student to warm state
+            assert self.warm_state is not None
+            self.student.load_state_dict({k: v.to(self.device) for k, v in self.warm_state.items()})
+
+            # Set a single-band gate vector
+            probe_gate = torch.zeros(len(BANDS), dtype=torch.float32, device=self.device)
+            probe_gate[idx] = 1.0
+            self.loss_fn.gate_vector.copy_(probe_gate)
+
+            # Short distillation with only this band
+            probe_opt = torch.optim.AdamW(
+                self.student.parameters(), lr=self.config.lr, weight_decay=self.config.weight_decay
+            )
+            for _ in range(probe_epochs):
+                self.student.train()
+                for x_b, y_b, yt_b, c_b in train_loader:
+                    probe_opt.zero_grad()
+                    pred = forward_student(self.student, x_b.to(self.device), c_b.to(self.device))
+                    loss, _ = self.loss_fn(
+                        pred,
+                        y_b.to(self.device),
+                        yt_b.to(self.device),
+                        lam_spec=self.config.lambda_max,
+                    )
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_(self.student.parameters(), max_norm=1.0)
+                    probe_opt.step()
+
+            # Evaluate on validation
+            y_val, yt_val, ys_probe_val, _ = self._collect_outputs(val_loader)
+            probe_val_metrics = evaluate_predictions_dsof(y_val, ys_probe_val, self.config)
+
+            warm_lsd_b = float(warm_bands[band]["lsd"])  # type: ignore[index]
+            warm_mse_b = float(warm_bands[band]["mse"])  # type: ignore[index]
+            probe_lsd_b = float(probe_val_metrics["bands"][band]["lsd"])  # type: ignore[index]
+            probe_mse_b = float(probe_val_metrics["bands"][band]["mse"])  # type: ignore[index]
+
+            g_val = 1.0 if (probe_lsd_b < warm_lsd_b and probe_mse_b < warm_mse_b) else 0.0
+            gates[band] = g_val
+            probe_details[band] = {
+                "warm_lsd": warm_lsd_b,
+                "probe_lsd": probe_lsd_b,
+                "warm_mse": warm_mse_b,
+                "probe_mse": probe_mse_b,
+                "gate": g_val,
+            }
+            print(
+                f"  [G4 probe {band}] warm_lsd={warm_lsd_b:.4f} -> probe_lsd={probe_lsd_b:.4f}, "
+                f"warm_mse={warm_mse_b:.6f} -> probe_mse={probe_mse_b:.6f} => gate={g_val:.0f}",
+                flush=True,
+            )
+
+        # Restore warm state and set final gates
+        self.student.load_state_dict({k: v.to(self.device) for k, v in self.warm_state.items()})
+        for idx, band in enumerate(BANDS):
+            self.loss_fn.gate_vector[idx] = gates[band]
+        self.loss_fn.calibrated = True
+        self.loss_fn.calibration_summary["gates"] = gates
+        self.loss_fn.calibration_summary["gate_mode"] = "benefit"
+        self.loss_fn.calibration_summary["benefit_probes"] = probe_details
+        return gates
+
     def fit_and_evaluate(
         self,
         train_loader: DataLoader,
@@ -542,7 +705,14 @@ class DSOFSDTrainer:
         y_cal, yt_cal, ys_warm_cal, _ = self._collect_outputs(val_loader)
         gates = self.loss_fn.calibrate_band_gates(y_cal, yt_cal, ys_warm_cal)
 
+        # For benefit gate (G4), override with empirical per-band probes
+        if self.config.gate_mode == "benefit":
+            warm_val_metrics = evaluate_predictions_dsof(y_cal, ys_warm_cal, self.config)
+            gates = self._calibrate_benefit_gates(train_loader, val_loader, warm_val_metrics)
+
         # Measure warm-start baseline on test before distillation
+        # (restore warm state first, in case benefit gate changed it)
+        self.student.load_state_dict({k: v.to(self.device) for k, v in self.warm_state.items()})
         y_test, yt_test, ys_warm_test, _ = self._collect_outputs(test_loader)
         warm_test_metrics = evaluate_predictions_dsof(y_test, ys_warm_test, self.config)
         teacher_test_metrics = evaluate_predictions_dsof(y_test, yt_test, self.config)
@@ -557,10 +727,22 @@ class DSOFSDTrainer:
         patience_left = self.config.patience
         history: List[Dict[str, float]] = []
 
-        for epoch in range(self.config.distill_epochs):
+        # If every gate is closed and there is no ground-truth anchor, Phase 2
+        # would degenerate into extra L_time training (an unfair "gain" vs the
+        # warm-start baseline). Skip it so distilled == warm.
+        all_gates_zero = all(float(g) == 0.0 for g in gates.values())
+        phase2_degenerate = all_gates_zero and self.config.lambda_anchor <= 0.0
+        if phase2_degenerate:
+            print(
+                "  [Phase 2 skipped] all gates == 0 and lambda_anchor == 0 -> distilled student == warm student.",
+                flush=True,
+            )
+        distill_epochs_effective = 0 if phase2_degenerate else self.config.distill_epochs
+
+        for epoch in range(distill_epochs_effective):
             lam_spec = self._anneal_lambda(epoch, self.config.distill_epochs, self.config.lambda_max)
             self.student.train()
-            epoch_stats = {"epoch": epoch + 1, "lam_spec": lam_spec, "loss_total": 0.0, "loss_time": 0.0, "loss_spec": 0.0}
+            epoch_stats = {"epoch": epoch + 1, "lam_spec": lam_spec, "loss_total": 0.0, "loss_time": 0.0, "loss_spec": 0.0, "loss_anchor": 0.0}
             n_batches = 0
 
             for x_b, y_b, yt_b, c_b in train_loader:
@@ -580,10 +762,11 @@ class DSOFSDTrainer:
                 epoch_stats["loss_total"] += info["loss_total"]
                 epoch_stats["loss_time"] += info["loss_time"]
                 epoch_stats["loss_spec"] += info["loss_spec"]
+                epoch_stats["loss_anchor"] += info["loss_anchor"]
                 n_batches += 1
 
             scheduler.step()
-            for key in ("loss_total", "loss_time", "loss_spec"):
+            for key in ("loss_total", "loss_time", "loss_spec", "loss_anchor"):
                 epoch_stats[key] /= max(1, n_batches)
 
             val_mse = self._run_val_mse(val_loader)
@@ -611,6 +794,7 @@ class DSOFSDTrainer:
             "runtime_sec": round(time.time() - t0, 2),
             "config": asdict(self.config),
             "gates": gates,
+            "phase2_degenerate": phase2_degenerate,
             "calibration": self.loss_fn.calibration_summary,
             "teacher": teacher_test_metrics,
             "warm_student": warm_test_metrics,
