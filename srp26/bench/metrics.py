@@ -65,6 +65,7 @@ class StreamingEvaluator:
         self.step_sq = torch.zeros(horizon, dtype=torch.float64, device=device)
         self.band = {k: {"err": 0.0, "true": 0.0, "pred": 0.0, "lsd_sq": 0.0, "lsd_n": 0} for k in BANDS}
         self.window_mse = []
+        self.window_mae = []
 
     @torch.no_grad()
     def update(self, pred: torch.Tensor, true: torch.Tensor, snaive: Optional[torch.Tensor] = None) -> None:
@@ -77,6 +78,7 @@ class StreamingEvaluator:
         self.abs_sum += diff.abs().sum().item()
         self.step_sq += diff.pow(2).sum(dim=(0, 2))
         self.window_mse.append(diff.pow(2).mean(dim=(1, 2)).float().cpu())
+        self.window_mae.append(diff.abs().mean(dim=(1, 2)).float().cpu())
         if snaive is not None:
             sd = snaive.double() - true
             self.snaive_sq_sum += sd.pow(2).sum().item()
@@ -134,6 +136,10 @@ class StreamingEvaluator:
 
     def window_errors(self) -> np.ndarray:
         return torch.cat(self.window_mse).numpy() if self.window_mse else np.zeros(0, dtype=np.float32)
+
+    def window_abs_errors(self) -> np.ndarray:
+        """Per-window MAE (mean over horizon steps and channels), same order as ``window_errors``."""
+        return torch.cat(self.window_mae).numpy() if self.window_mae else np.zeros(0, dtype=np.float32)
 
 
 def seasonal_naive(x: torch.Tensor, pred_len: int, period: int) -> torch.Tensor:

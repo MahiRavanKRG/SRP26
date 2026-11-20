@@ -59,6 +59,10 @@ class DSOFSDConfig:
     lambda_anchor: float = 0.0  # ground-truth spectral anchor weight
     recalibrate_teacher: bool = False  # amplitude recalibration
     eps: float = 1e-6
+    # Skip Phase 2 when every gate is 0 (original behaviour). The v2 harness sets
+    # False: with a lambda=0 control run as the baseline, an all-zero-gate run must
+    # train the same schedule as the control instead of collapsing to the warm student.
+    skip_degenerate_phase2: bool = True
 
 
 class TeacherTargetDataset(Dataset):
@@ -731,7 +735,8 @@ class DSOFSDTrainer:
         # would degenerate into extra L_time training (an unfair "gain" vs the
         # warm-start baseline). Skip it so distilled == warm.
         all_gates_zero = all(float(g) == 0.0 for g in gates.values())
-        phase2_degenerate = all_gates_zero and self.config.lambda_anchor <= 0.0
+        phase2_degenerate = (all_gates_zero and self.config.lambda_anchor <= 0.0
+                             and self.config.skip_degenerate_phase2)
         if phase2_degenerate:
             print(
                 "  [Phase 2 skipped] all gates == 0 and lambda_anchor == 0 -> distilled student == warm student.",
