@@ -138,6 +138,7 @@ class StreamingEvaluator:
         return torch.cat(self.window_mse).numpy() if self.window_mse else np.zeros(0, dtype=np.float32)
 
     def window_abs_errors(self) -> np.ndarray:
+        """Per-window MAE (mean over horizon steps and channels), same order as ``window_errors``."""
         return torch.cat(self.window_mae).numpy() if self.window_mae else np.zeros(0, dtype=np.float32)
 
 

@@ -66,11 +66,19 @@ def fit(model: nn.Module, train_loader, val_loader, device: torch.device, lr: fl
 
 
 @torch.no_grad()
-def evaluate_test(model: nn.Module, test_loader, device: torch.device, pred_len: int, dt_hours: float,
-                  snaive_period: int) -> Tuple[Dict[str, object], np.ndarray, np.ndarray]:
+def evaluate_test_windows(model: nn.Module, test_loader, device: torch.device, pred_len: int, dt_hours: float,
+                          snaive_period: int) -> Tuple[Dict[str, object], np.ndarray, np.ndarray]:
+    """Full stride-1 test evaluation: (metrics, per-window MSE, per-window MAE)."""
     model.eval()
     ev = StreamingEvaluator(pred_len, dt_hours, device)
     for x, y, cyc in test_loader:
         x, y, cyc = x.to(device), y.to(device), cyc.to(device)
         ev.update(model(x, cyc), y, snaive=seasonal_naive(x, pred_len, snaive_period))
     return ev.result(), ev.window_errors(), ev.window_abs_errors()
+
+
+@torch.no_grad()
+def evaluate_test(model: nn.Module, test_loader, device: torch.device, pred_len: int, dt_hours: float,
+                  snaive_period: int) -> Tuple[Dict[str, object], np.ndarray]:
+    metrics, wmse, _ = evaluate_test_windows(model, test_loader, device, pred_len, dt_hours, snaive_period)
+    return metrics, wmse

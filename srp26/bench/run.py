@@ -10,6 +10,11 @@ Phases:
     lrsel  validation-only LR selection (seed 2024); the test set is never evaluated.
     final  the reported runs; LR comes from configs/v2/selected_lr.json unless fixed per model.
 
+Stage-2 job entries are dispatched by ``phase`` from the same --jobs runner:
+    foundation    -> srp26.bench.foundation (zero-shot TimesFM / Chronos / TTM / Fourier base)
+    dsof_teacher  -> srp26.bench.dsof cache-teacher
+    dsof          -> srp26.bench.dsof run
+
 Results are immutable: an existing result file is skipped, never overwritten.
 """
 
@@ -26,7 +31,7 @@ from srp26.bench import HARNESS_VERSION
 from srp26.bench.data import Bundle, build_bundle
 from srp26.bench.env import REPO_ROOT, get_device, provenance, seed_everything
 from srp26.bench.models import build_model, count_params, model_defaults
-from srp26.bench.train import evaluate_test, fit
+from srp26.bench.train import evaluate_test_windows, fit
 
 SEQ_LEN = 336
 LR_GRID = [1e-4, 5e-4, 1e-3, 5e-3]
@@ -99,8 +104,8 @@ def run_one(set_label: str, phase: str, dataset: str, horizon: int, model_name: 
         "daily_cycle_resolvable": horizon * bundle.spec.dt_hours >= 24.0,
     }
     if phase == "final":
-        metrics, window_err, window_abs = evaluate_test(model, bundle.test_loader, device, horizon, bundle.spec.dt_hours,
-                                            bundle.spec.daily_period)
+        metrics, window_err, window_abs = evaluate_test_windows(model, bundle.test_loader, device, horizon,
+                                                                bundle.spec.dt_hours, bundle.spec.daily_period)
         record["metrics"] = metrics
         record["seasonal_naive_period"] = bundle.spec.daily_period
     record["wall_time_sec"] = round(time.time() - t0, 2)
@@ -118,6 +123,18 @@ def run_one(set_label: str, phase: str, dataset: str, horizon: int, model_name: 
     print(f"[done] {phase} {dataset} H{horizon} {model_name} s{seed} lr={lr:g} "
           f"val={train['val_mse']:.4f} test={m.get('mse', float('nan')):.4f} ({record['wall_time_sec']}s)")
     return path
+
+
+def run_job(set_label: str, job: Dict) -> Optional[Path]:
+    """Dispatch one job-list entry by its ``phase`` (stage 1: lrsel/final; stage 2: foundation/dsof)."""
+    phase = job["phase"]
+    if phase == "foundation":
+        from srp26.bench import foundation
+        return foundation.run_job(set_label, job)
+    if phase in ("dsof", "dsof_teacher"):
+        from srp26.bench import dsof
+        return dsof.run_job(set_label, job)
+    return run_one(set_label, phase, job["dataset"], job["horizon"], job["model"], job["seed"], job.get("lr"))
 
 
 def main() -> None:
@@ -141,7 +158,7 @@ def main() -> None:
         failures = 0
         for j in mine:
             try:
-                run_one(a.set, j["phase"], j["dataset"], j["horizon"], j["model"], j["seed"], j.get("lr"))
+                run_job(a.set, j)
             except Exception as exc:  # record and continue; completeness check reports the gap
                 failures += 1
                 print(f"[FAIL] {j}: {type(exc).__name__}: {exc}")

@@ -2,6 +2,7 @@
 
     uv run python -m srp26.bench.report --set bigmama            # runs.csv + summary.md
     uv run python -m srp26.bench.report --compare local bigmama  # cross-machine agreement
+    uv run python -m srp26.bench.report --foundation-compare bigmama  # zero-shot vs trained, same windows
 """
 
 import argparse
@@ -90,12 +91,68 @@ def compare(a: str, b: str) -> None:
               .head(20).to_string(index=False))
 
 
+def rescore_on_windows(trained_set: str, dataset: str, horizon: int, indices, n_test: int) -> pd.DataFrame:
+    """Re-score every trained final run of (dataset, H) on the given test-window indices.
+
+    Uses the saved stride-1 per-window losses: MSE from ``*.wmse.npy`` and MAE
+    from ``*.wmae.npy`` (MAE is NaN for runs saved before ``.wmae.npy`` existed).
+    All windows have the same size, so the mean of per-window MSE over the
+    subset equals the MSE over those windows.
+    """
+    idx = np.asarray(indices, dtype=np.int64)
+    rows = []
+    for p in sorted((RESULTS / trained_set / "final" / dataset / f"H{horizon}").glob("*/s*.json")):
+        wmse_p = p.with_suffix(".wmse.npy")
+        if not wmse_p.exists():
+            continue
+        wmse = np.load(wmse_p)
+        if len(wmse) != n_test:
+            print(f"[warn] {p.relative_to(RESULTS)}: {len(wmse)} windows, expected {n_test}; skipped")
+            continue
+        wmae_p = p.with_suffix(".wmae.npy")
+        mae = float(np.load(wmae_p)[idx].astype(np.float64).mean()) if wmae_p.exists() else float("nan")
+        r = json.loads(p.read_text())
+        rows.append({"dataset": dataset, "pred_len": horizon, "model": r["model"], "seed": r["seed"],
+                     "kind": "trained", "n_windows": len(idx), "mse": float(wmse[idx].astype(np.float64).mean()),
+                     "mae": mae, "mse_full_test": r["metrics"]["mse"]})
+    return pd.DataFrame(rows)
+
+
+def foundation_compare(foundation_set: str, trained_set: str = None) -> pd.DataFrame:
+    """Foundation (zero-shot) and trained models on identical stride-H test windows."""
+    trained_set = trained_set or foundation_set
+    rows, done = [], set()
+    for p in sorted((RESULTS / foundation_set / "foundation").rglob("s*.json")):
+        r = json.loads(p.read_text())
+        ew = r["eval_windows"]
+        rows.append({"dataset": r["dataset"], "pred_len": r["pred_len"], "model": r["model"], "seed": r["seed"],
+                     "kind": "foundation", "n_windows": ew["n"], "mse": r["metrics"]["mse"],
+                     "mae": r["metrics"]["mae"], "mse_full_test": None})
+        key = (r["dataset"], r["pred_len"], tuple(ew["indices"]))
+        if ew.get("max_windows") is None and key not in done:  # full stride-H set only
+            done.add(key)
+            rows += rescore_on_windows(trained_set, r["dataset"], r["pred_len"], ew["indices"],
+                                       ew["n_test_stride1"]).to_dict("records")
+    if not rows:
+        raise SystemExit(f"No foundation results under {RESULTS / foundation_set / 'foundation'}")
+    df = pd.DataFrame(rows).sort_values(["dataset", "pred_len", "kind", "model", "seed"])
+    out = RESULTS / foundation_set / f"foundation_vs_trained_{trained_set}.csv"
+    df.to_csv(out, index=False)
+    print(f"{len(df)} rows -> {out.relative_to(REPO_ROOT)}")
+    return df
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--set")
     p.add_argument("--compare", nargs=2)
+    p.add_argument("--foundation-compare", metavar="SET",
+                   help="Score trained final runs on the foundation models' stride-H windows.")
+    p.add_argument("--trained-set", help="Set holding the trained final runs (default: same as --foundation-compare).")
     a = p.parse_args()
-    if a.compare:
+    if a.foundation_compare:
+        foundation_compare(a.foundation_compare, a.trained_set)
+    elif a.compare:
         compare(*a.compare)
     else:
         write_set_report(a.set)
