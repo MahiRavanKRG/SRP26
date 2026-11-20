@@ -73,6 +73,18 @@ def test_seasonal_naive_repeats_last_period():
     assert torch.equal(out[0, 24:, 0], x[0, 24:30, 0])
 
 
+@pytest.mark.parametrize("wavelet", ["haar", "db4"])
+def test_chunked_dwt_matches_unchunked(wavelet):
+    import ptwt
+    from srp26.transforms import DWTTransform
+
+    x = torch.randn(9, 336, 7, generator=torch.Generator().manual_seed(3))
+    t = DWTTransform(336, wavelet=wavelet, level=2)
+    ref = torch.cat(ptwt.wavedec(x.permute(0, 2, 1).contiguous(), t.wavelet, level=2), dim=-1)[..., :336]
+    t.max_rows = 5  # force several uneven chunks
+    assert torch.equal(t.encode(x), ref)
+
+
 # ---------------------------------------------------------------- data
 
 def test_etth1_split_sizes_and_no_leakage():

@@ -178,10 +178,17 @@ class DWTTransform(BaseTransform):
     def feature_dim(self) -> int:
         return self.seq_len
 
+    # CUDA caps a convolution's grid dimension; ptwt maps batch*channels onto it, so
+    # wide datasets (Electricity/Traffic at eval batch 256) must be transformed in
+    # chunks. Each sequence is transformed independently, so chunking is exact.
+    max_rows: int = 32768
+
     def encode(self, x: torch.Tensor) -> torch.Tensor:
-        xc = x.permute(0, 2, 1).contiguous()  # [B, C, L]
-        coeffs = ptwt.wavedec(xc, self.wavelet, level=self.level)  # list of [B, C, len_k]
-        z = torch.cat(coeffs, dim=-1)  # [B, C, total]
+        b, _, c = x.shape
+        rows = x.permute(0, 2, 1).reshape(b * c, -1)  # [B*C, L]
+        parts = [torch.cat(ptwt.wavedec(rows[i:i + self.max_rows], self.wavelet, level=self.level), dim=-1)
+                 for i in range(0, rows.shape[0], self.max_rows)]
+        z = torch.cat(parts, dim=0).reshape(b, c, -1)  # [B, C, total]
         total = z.shape[-1]
         if total >= self.seq_len:
             return z[..., : self.seq_len]
