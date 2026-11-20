@@ -191,8 +191,8 @@ def _load_ttm(device: torch.device, horizon: int) -> Forecaster:
     try:
         from tsfm_public import TinyTimeMixerForPrediction
     except ImportError as exc:
-        raise RuntimeError("TTM unavailable: package 'granite-tsfm' (module tsfm_public) is not installed in the "
-                           "locked v2 environment; adding it would change uv.lock.") from exc
+        raise RuntimeError("TTM unavailable: run TTM jobs with the separate env in envs/ttm "
+                           "(granite-tsfm 0.3.12 needs torch>=2.10; the main v2 env pins torch 2.8).") from exc
     model = TinyTimeMixerForPrediction.from_pretrained(HF_IDS["ttm"]).to(device).eval()
     ctx = int(model.config.context_length)
 

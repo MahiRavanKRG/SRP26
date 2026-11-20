@@ -1,0 +1,16 @@
+{"phase": "foundation", "dataset": "ETTh1", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTh2", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTm1", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTm2", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "weather", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "electricity", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "traffic", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "solar", "horizon": 96, "model": "ttm", "fourier": false, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTh1", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTh2", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTm1", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "ETTm2", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "weather", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "electricity", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "traffic", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}
+{"phase": "foundation", "dataset": "solar", "horizon": 96, "model": "ttm", "fourier": true, "seed": 2024}

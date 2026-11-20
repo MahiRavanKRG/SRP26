@@ -85,6 +85,13 @@ def cmd_sync(ssh: paramiko.SSHClient) -> None:
     print(f"synced commit {commit} to ~/{REMOTE_DIR}")
 
 
+def cmd_setup_ttm(ssh: paramiko.SSHClient) -> None:
+    """Separate locked env for TTM only (envs/ttm): torch 2.11 + granite-tsfm 0.3.12."""
+    sh(ssh, f"cd ~/{REMOTE_DIR}/envs/ttm && {UV} sync --frozen --python 3.13")
+    sh(ssh, f"cd ~/{REMOTE_DIR} && envs/ttm/.venv/bin/python -c "
+            "\"import torch, tsfm_public; print(torch.__version__, torch.version.cuda)\"")
+
+
 def cmd_setup(ssh: paramiko.SSHClient) -> None:
     sh(ssh, f"{UV} python install 3.13")
     sh(ssh, f"cd ~/{REMOTE_DIR} && {UV} sync --frozen --all-extras --python 3.13")
@@ -110,14 +117,14 @@ export SRP26_HOST_LABEL=bigmama
 export SRP26_DATA_DIR=$HOME/{root}/data_sets
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 echo "host=$(hostname) gpu=$(nvidia-smi --query-gpu=name --format=csv,noheader -i $CUDA_VISIBLE_DEVICES) commit=$SRP26_GIT_COMMIT"
-.venv/bin/python -m srp26.bench.run --set bigmama --jobs {jobs} --shard $SLURM_ARRAY_TASK_ID --n-shards {shards}
+{python} -m {module} --set bigmama --jobs {jobs} --shard $SLURM_ARRAY_TASK_ID --n-shards {shards}
 """
 
 
 def cmd_submit(ssh: paramiko.SSHClient, jobs: str, name: str, shards: int, concurrent: int,
-               time: str, mem: str) -> None:
+               time: str, mem: str, python: str = ".venv/bin/python", module: str = "srp26.bench.run") -> None:
     script = SLURM.format(name=name, mem=mem, time=time, last=shards - 1, concurrent=concurrent,
-                          root=REMOTE_DIR, jobs=jobs, shards=shards)
+                          root=REMOTE_DIR, jobs=jobs, shards=shards, python=python, module=module)
     sftp = ssh.open_sftp()
     path = f"{sh(ssh, 'echo $HOME').strip()}/{REMOTE_DIR}/slurm_v2_{name}.sh"
     with sftp.open(path, "w") as f:
@@ -159,6 +166,7 @@ def main() -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("sync")
     sub.add_parser("setup")
+    sub.add_parser("setup-ttm")
     s = sub.add_parser("submit")
     s.add_argument("--jobs", required=True)
     s.add_argument("--phase-name", required=True)
@@ -166,6 +174,8 @@ def main() -> None:
     s.add_argument("--concurrent", type=int, default=8)
     s.add_argument("--time", default="24:00:00")
     s.add_argument("--mem", default="32G")
+    s.add_argument("--python", default=".venv/bin/python", help="e.g. envs/ttm/.venv/bin/python for TTM jobs")
+    s.add_argument("--module", default="srp26.bench.run", help="e.g. srp26.bench.foundation for TTM jobs")
     sub.add_parser("status")
     sub.add_parser("fetch")
     e = sub.add_parser("exec")
@@ -178,8 +188,10 @@ def main() -> None:
             cmd_sync(ssh)
         elif a.cmd == "setup":
             cmd_setup(ssh)
+        elif a.cmd == "setup-ttm":
+            cmd_setup_ttm(ssh)
         elif a.cmd == "submit":
-            cmd_submit(ssh, a.jobs, a.phase_name, a.shards, a.concurrent, a.time, a.mem)
+            cmd_submit(ssh, a.jobs, a.phase_name, a.shards, a.concurrent, a.time, a.mem, a.python, a.module)
         elif a.cmd == "status":
             sh(ssh, "squeue -u $USER -o '%.12i %.20j %.8T %.10M %.6D %R'", check=False)
         elif a.cmd == "fetch":

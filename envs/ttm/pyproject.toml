@@ -1,0 +1,34 @@
+# Isolated environment for IBM Granite TTM-R1 only (protocol §8/§9).
+#
+# granite-tsfm 0.3.12 requires torch >= 2.10, but the main v2 environment pins
+# torch 2.8.0 for every other experiment. TTM is zero-shot inference (no
+# training), so it runs here instead of changing the main lock. numpy/pandas/
+# scipy are pinned to the main lock's versions so the shared metric code is
+# identical; only torch and the TTM stack differ. Every TTM result records its
+# own torch version in `provenance`.
+#
+#   cd envs/ttm && uv sync --frozen        # creates envs/ttm/.venv
+#   (from repo root) envs/ttm/.venv/bin/python -m srp26.bench.run --set <set> --jobs configs/v2/jobs_stage2_ttm.jsonl
+
+[project]
+name = "srp26-ttm-env"
+version = "0.1.0"
+requires-python = "==3.13.*"
+dependencies = [
+    "granite-tsfm==0.3.12",
+    "torch>=2.10",
+    "numpy==2.4.4",
+    "pandas==3.0.2",
+    "scipy==1.17.1",
+]
+
+[tool.uv]
+package = false
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cuda" }

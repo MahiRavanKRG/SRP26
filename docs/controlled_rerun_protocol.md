@@ -223,3 +223,11 @@ uv run python -m srp26.bench.report      # regenerates every table
 | Result paths | `results/v2/<set>/foundation/<D>/H<H>/<model>[_fourier]/s<seed>.json`, `results/v2/<set>/dsof/<D>/H<H>/<student>_<gate>/s<seed>.json` (a non-TimesFM teacher appends `_teacher-<name>`), atomic write, skip if present, provenance as Tier 1 |
 | Smoke-only flags | `--max-windows N` (foundation), `--epochs-override W,D` (DSOF), `--hf-id-override` (Chronos-Bolt with `--max-windows` only); all recorded in the result JSON, never used in the grids |
 | Smoke test (laptop, ETTh1, set `stage2_smoke`) | Foundation H96, first 3 stride-H windows: TimesFM, TimesFM+Fourier, Chronos-T5, Chronos-T5+Fourier, Fourier base run; TimesFM H720 runs. Chronos-Bolt-**base** weights are not in the local HF cache (config only), so its code path was smoke-tested with `chronos-bolt-tiny` via `--hf-id-override` (H96, H96+Fourier, H192). DSOF sor-control and sor-hard (1 warm + 1 distill epoch) with the Fourier-base teacher; both share the identical warm student. A TimesFM teacher slice reproduces the foundation TimesFM MSE on the same windows (alignment check) |
+
+### TTM environment (2026-11-20)
+
+| Item | Decision |
+|---|---|
+| Why separate | granite-tsfm 0.3.12 requires torch >= 2.10; the only torch-2.8-compatible release (0.3.2) would downgrade transformers 5.22 -> 4.56 for every foundation model. Upgrading torch in the main env would mix torch versions inside the running Bigmama set and break the laptop/Bigmama comparison |
+| Environment | `envs/ttm` (own `pyproject.toml` + `uv.lock`): Python 3.13, torch 2.11.0+cu128, granite-tsfm 0.3.12, transformers 5.23.0; numpy 2.4.4 / pandas 3.0.2 / scipy 1.17.1 pinned identical to the main lock so the shared metric code is identical |
+| Scope | Only the 16 TTM jobs (`configs/v2/jobs_stage2_ttm.jsonl`, H=96, 8 datasets x plain/Fourier), run via `srp26.bench.foundation --jobs`. TTM is zero-shot inference (no training). Each result records its own torch version in `provenance` |
