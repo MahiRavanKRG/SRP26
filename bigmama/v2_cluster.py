@@ -104,7 +104,7 @@ SLURM = """#!/usr/bin/env bash
 #SBATCH --output=logs/v2_{name}_%A_%a.out
 #SBATCH --error=logs/v2_{name}_%A_%a.err
 #SBATCH --partition=STUD
-#SBATCH --gres=gpu:6000:1
+#SBATCH --gres=gpu:{gpu}:1
 #SBATCH --mem={mem}
 #SBATCH --cpus-per-task=4
 #SBATCH --time={time}
@@ -122,9 +122,9 @@ echo "host=$(hostname) gpu=$(nvidia-smi --query-gpu=name --format=csv,noheader -
 
 
 def cmd_submit(ssh: paramiko.SSHClient, jobs: str, name: str, shards: int, concurrent: int,
-               time: str, mem: str, python: str = ".venv/bin/python", module: str = "srp26.bench.run") -> None:
+               time: str, mem: str, python: str = ".venv/bin/python", module: str = "srp26.bench.run", gpu: str = "6000") -> None:
     script = SLURM.format(name=name, mem=mem, time=time, last=shards - 1, concurrent=concurrent,
-                          root=REMOTE_DIR, jobs=jobs, shards=shards, python=python, module=module)
+                          root=REMOTE_DIR, jobs=jobs, shards=shards, python=python, module=module, gpu=gpu)
     sftp = ssh.open_sftp()
     path = f"{sh(ssh, 'echo $HOME').strip()}/{REMOTE_DIR}/slurm_v2_{name}.sh"
     with sftp.open(path, "w") as f:
@@ -176,6 +176,7 @@ def main() -> None:
     s.add_argument("--mem", default="32G")
     s.add_argument("--python", default=".venv/bin/python", help="e.g. envs/ttm/.venv/bin/python for TTM jobs")
     s.add_argument("--module", default="srp26.bench.run", help="e.g. srp26.bench.foundation for TTM jobs")
+    s.add_argument("--gpu", default="6000", choices=["6000", "2070"], help="GPU type to pin the array to")
     sub.add_parser("status")
     sub.add_parser("fetch")
     e = sub.add_parser("exec")
@@ -191,7 +192,7 @@ def main() -> None:
         elif a.cmd == "setup-ttm":
             cmd_setup_ttm(ssh)
         elif a.cmd == "submit":
-            cmd_submit(ssh, a.jobs, a.phase_name, a.shards, a.concurrent, a.time, a.mem, a.python, a.module)
+            cmd_submit(ssh, a.jobs, a.phase_name, a.shards, a.concurrent, a.time, a.mem, a.python, a.module, a.gpu)
         elif a.cmd == "status":
             sh(ssh, "squeue -u $USER -o '%.12i %.20j %.8T %.10M %.6D %R'", check=False)
         elif a.cmd == "fetch":
