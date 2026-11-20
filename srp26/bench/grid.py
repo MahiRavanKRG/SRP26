@@ -60,29 +60,75 @@ def write_jobs() -> None:
         print(f"{name}: {len(jobs)} jobs")
 
 
-def select_lr(set_label: str) -> None:
+NL = chr(10)
+EXT_LOW = [5e-5, 1e-5]   # tried only when 1e-4 (grid minimum) wins
+EXT_HIGH = [1e-2]        # tried only when 5e-3 (grid maximum) wins
+
+
+def _cell_values(root: Path, d: str, h: int, m: str):
+    vals, missing = {}, []
+    for lr in LR_GRID + EXT_LOW + EXT_HIGH:
+        p = result_path(root, "lrsel", d, h, m, LRSEL_SEED, lr)
+        if p.exists():
+            vals[lr] = json.loads(p.read_text())["val_mse"]
+        elif lr in LR_GRID:
+            missing.append(str(p.relative_to(root)))
+    return vals, missing
+
+
+def _needed_extension(vals: Dict[float, float]):
+    """LRs still to try so the selected LR is not on an unexplored grid edge."""
+    best = min(vals, key=lambda lr: (vals[lr], lr))
+    tried = sorted(vals)
+    if best == tried[0]:
+        return [lr for lr in EXT_LOW if lr not in vals and lr < best][:1]
+    if best == tried[-1]:
+        return [lr for lr in EXT_HIGH if lr not in vals and lr > best][:1]
+    return []
+
+
+def select_lr(set_label: str, allow_partial: bool = False) -> None:
+    """Lowest validation MSE (ties -> smaller LR). Cells whose best LR lies on an
+    unexplored grid edge are left out until the edge extension has been run."""
     root = REPO_ROOT / "results" / "v2" / set_label
-    table, missing = {}, []
+    table, missing, edge = {}, [], []
     for d in DATASETS:
         for h in HORIZONS:
             for m in TUNED:
-                vals = []
-                for lr in LR_GRID:
-                    p = result_path(root, "lrsel", d, h, m, LRSEL_SEED, lr)
-                    if p.exists():
-                        vals.append((json.loads(p.read_text())["val_mse"], lr))
-                    else:
-                        missing.append(str(p.relative_to(root)))
-                if len(vals) == len(LR_GRID):
-                    table[f"{d}|{h}|{m}"] = min(vals)[1]  # lowest validation MSE; ties -> smaller LR
-    if missing:
+                vals, miss = _cell_values(root, d, h, m)
+                if miss:
+                    missing += miss
+                    continue
+                if _needed_extension(vals):
+                    edge.append(f"{d}|{h}|{m}")
+                    continue
+                table[f"{d}|{h}|{m}"] = min(vals, key=lambda lr: (vals[lr], lr))
+    if missing and not allow_partial:
         raise SystemExit(f"LR selection incomplete: {len(missing)} lrsel results missing, e.g. {missing[:3]}")
+    if missing or edge:
+        print(f"PARTIAL selection: {len(missing)} base-grid results missing; {len(edge)} cells on an unexplored edge "
+              f"(run `grid edge-jobs`). Omitted cells' final runs fail fast and are resubmitted later.")
     SELECTED_LR_FILE.parent.mkdir(parents=True, exist_ok=True)
     SELECTED_LR_FILE.write_text(json.dumps(table, indent=1, sort_keys=True))
     counts = defaultdict(int)
     for v in table.values():
         counts[v] += 1
     print(f"selected LR for {len(table)} cells -> {SELECTED_LR_FILE}; distribution {dict(sorted(counts.items()))}")
+
+
+def edge_jobs(set_label: str) -> None:
+    root = REPO_ROOT / "results" / "v2" / set_label
+    jobs = []
+    for d in DATASETS:
+        for h in HORIZONS:
+            for m in TUNED:
+                vals, miss = _cell_values(root, d, h, m)
+                if not miss:
+                    jobs += [{"phase": "lrsel", "dataset": d, "horizon": h, "model": m, "seed": LRSEL_SEED, "lr": lr}
+                             for lr in _needed_extension(vals)]
+    out = CONFIG_DIR / "jobs_lrsel_edge.jsonl"
+    out.write_text(NL.join(json.dumps(j) for j in _sort_heavy_last(jobs)) + NL)
+    print(f"{len(jobs)} edge-extension jobs -> {out.relative_to(REPO_ROOT)}")
 
 
 def check(set_label: str, phase: str, jobs_file: str) -> None:
@@ -102,6 +148,9 @@ def main() -> None:
     sub.add_parser("jobs")
     s = sub.add_parser("select-lr")
     s.add_argument("--set", required=True)
+    s.add_argument("--allow-partial", action="store_true")
+    e = sub.add_parser("edge-jobs")
+    e.add_argument("--set", required=True)
     c = sub.add_parser("check")
     c.add_argument("--set", required=True)
     c.add_argument("--phase", default="final")
@@ -109,8 +158,10 @@ def main() -> None:
     a = p.parse_args()
     if a.cmd == "jobs":
         write_jobs()
+    elif a.cmd == "edge-jobs":
+        edge_jobs(a.set)
     elif a.cmd == "select-lr":
-        select_lr(a.set)
+        select_lr(a.set, a.allow_partial)
     else:
         check(a.set, a.phase, a.jobs)
 

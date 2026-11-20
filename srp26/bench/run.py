@@ -99,7 +99,7 @@ def run_one(set_label: str, phase: str, dataset: str, horizon: int, model_name: 
         "daily_cycle_resolvable": horizon * bundle.spec.dt_hours >= 24.0,
     }
     if phase == "final":
-        metrics, window_err = evaluate_test(model, bundle.test_loader, device, horizon, bundle.spec.dt_hours,
+        metrics, window_err, window_abs = evaluate_test(model, bundle.test_loader, device, horizon, bundle.spec.dt_hours,
                                             bundle.spec.daily_period)
         record["metrics"] = metrics
         record["seasonal_naive_period"] = bundle.spec.daily_period
@@ -110,6 +110,7 @@ def run_one(set_label: str, phase: str, dataset: str, horizon: int, model_name: 
     path.parent.mkdir(parents=True, exist_ok=True)
     if phase == "final":
         np.save(path.with_suffix(".wmse.npy"), window_err.astype(np.float32))
+        np.save(path.with_suffix(".wmae.npy"), window_abs.astype(np.float32))
     tmp = path.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(record, indent=1))
     tmp.replace(path)  # atomic: a crashed run never leaves a half-written result
