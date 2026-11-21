@@ -1,0 +1,24 @@
+\begin{tabular}{llcccccccccc}
+\toprule
+& & & \multicolumn{5}{c}{\textbf{Zero-shot (no training)}} & \multicolumn{4}{c}{\textbf{Trained / naive, same windows}} \\
+\cmidrule(lr){4-8} \cmidrule(lr){9-12}
+\textbf{Data} & $H$ & $n_w$ & \textbf{TimesFM} & \textbf{Chr.-Bolt} & \textbf{Chr.-T5} & \textbf{TTM} & \textbf{Fourier} & \textbf{S-Naive} & \textbf{Linear} & \textbf{CycleNet$_{\text{fix}}$} & \textbf{PatchTST} \\
+\midrule
+ETTh1 & 96 & 30 & 0.4226 & 0.4358 & 0.5581 & 0.4024 & 0.5045 & 0.5528 & 0.3818 & \underline{0.3810} & \textbf{0.3800} \\
+ETTh1 & 720 & 4 & 0.4860 & 0.4873 & 0.6909 & -- & 0.5231 & 0.6658 & \textbf{0.4740} & \underline{0.4801} & 0.4830 \\
+ETTh2 & 96 & 30 & 0.2952 & 0.2677 & 0.3431 & 0.2826 & 0.5140 & 0.3777 & \textbf{0.2558} & 0.2627 & \underline{0.2601} \\
+ETTh2 & 720 & 4 & 0.4442 & 0.5380 & 0.6074 & -- & 0.5404 & 0.6045 & \underline{0.3884} & 0.4043 & \textbf{0.3832} \\
+ETTm1 & 96 & 120 & 0.3090 & 0.3170 & 0.6361 & 0.4528 & 1.0814 & 0.4219 & 0.2774 & \textbf{0.2742} & \underline{0.2767} \\
+ETTm1 & 720 & 16 & 0.5053 & 0.5794 & 0.8614 & -- & 1.0236 & 0.6189 & 0.4604 & \underline{0.4579} & \textbf{0.4432} \\
+ETTm2 & 96 & 120 & 0.1841 & 0.1843 & 0.2223 & 0.1906 & 0.4708 & 0.2620 & 0.1655 & \textbf{0.1613} & \underline{0.1640} \\
+ETTm2 & 720 & 16 & 0.4148 & 0.4445 & 0.4503 & -- & 0.5565 & 0.4857 & \underline{0.3625} & \textbf{0.3589} & 0.3716 \\
+Weather & 96 & 109 & \underline{0.1576} & 0.1795 & 0.2260 & 0.1623 & 0.4192 & 0.3169 & 0.1770 & 0.1800 & \textbf{0.1437} \\
+Weather & 720 & 14 & 0.4039 & 0.3963 & 0.4087 & -- & 0.5257 & 0.4712 & 0.3695 & \underline{0.3596} & \textbf{0.3417} \\
+Electricity & 96 & 54 & 0.1349 & \textbf{0.1242} & 0.2846 & 0.2529 & 0.2288 & 0.3100 & 0.1383 & \underline{0.1266} & 0.1298 \\
+Electricity & 720 & 7 & 0.2118 & 0.2203 & 0.5089 & -- & 0.2595 & 0.3761 & 0.2077 & \textbf{0.1987} & \underline{0.2043} \\
+Traffic & 96 & 36 & \textbf{0.3671} & 0.4098 & 1.0122 & 0.6336 & 0.6693 & 1.2095 & 0.4093 & 0.3998 & \underline{0.3835} \\
+Traffic & 720 & 4 & \textbf{0.4398} & 0.5573 & 1.2105 & -- & 0.7079 & 1.2236 & 0.4756 & \underline{0.4594} & 0.4700 \\
+Solar & 96 & 109 & 0.2713 & 0.5727 & 0.7576 & 0.3796 & 1.5759 & 0.2891 & 0.2402 & \underline{0.2341} & \textbf{0.1784} \\
+Solar & 720 & 14 & 0.4180 & 1.0728 & 0.9832 & -- & 1.7108 & 0.3737 & 0.2783 & \underline{0.2641} & \textbf{0.2247} \\
+\bottomrule
+\end{tabular}
