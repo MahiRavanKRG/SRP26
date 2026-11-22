@@ -1,0 +1,63 @@
+{
+ "harness_version": "2.0.0",
+ "set": "bigmama",
+ "phase": "lrsel",
+ "dataset": "electricity",
+ "pred_len": 192,
+ "seq_len": 336,
+ "model": "tf_dwt_haar",
+ "seed": 2024,
+ "hparams": {
+  "lr": 0.005,
+  "batch_size": 32,
+  "max_epochs": 30,
+  "patience": 5,
+  "optimizer": "Adam",
+  "scheduler": "cosine",
+  "precision": "fp32"
+ },
+ "model_info": {},
+ "params": 64704,
+ "split": {
+  "train_end": 18412,
+  "val_end": 21043,
+  "test_end": 26304,
+  "n_train": 17885,
+  "n_val": 2440,
+  "n_test": 5070
+ },
+ "dataset_sha256": "7e45845d54c5219bad0ae6bc1b5316cf8ff9cead5d33fa998a5a51c2e4a497ad",
+ "epochs_run": 10,
+ "best_epoch": 5,
+ "train_time_sec": 33.14,
+ "val_mse": 0.13632568470000683,
+ "val_curve": [
+  0.138276,
+  0.139649,
+  0.142614,
+  0.138229,
+  0.136326,
+  0.138788,
+  0.144081,
+  0.138293,
+  0.138859,
+  0.139602
+ ],
+ "window_hours": 192.0,
+ "daily_cycle_resolvable": true,
+ "wall_time_sec": 33.14,
+ "provenance": {
+  "commit": "6ec25975b1a4514cc5923bea6de21199c689223c",
+  "dirty": false,
+  "host": "bigmama",
+  "python": "3.13.18",
+  "torch": "2.8.0+cu128",
+  "cuda": "12.8",
+  "numpy": "2.4.4",
+  "scipy": "1.17.1",
+  "pandas": "3.0.2",
+  "gpu": "NVIDIA RTX PRO 5000 Blackwell",
+  "platform": "Linux-6.8.0-31-generic-x86_64-with-glibc2.39"
+ },
+ "finished_utc": "2026-11-20T00:32:02+00:00"
+}

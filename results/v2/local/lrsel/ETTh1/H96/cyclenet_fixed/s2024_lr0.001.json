@@ -1,0 +1,71 @@
+{
+ "harness_version": "2.0.0",
+ "set": "local",
+ "phase": "lrsel",
+ "dataset": "ETTh1",
+ "pred_len": 96,
+ "seq_len": 336,
+ "model": "cyclenet_fixed",
+ "seed": 2024,
+ "hparams": {
+  "lr": 0.001,
+  "batch_size": 32,
+  "max_epochs": 30,
+  "patience": 5,
+  "optimizer": "Adam",
+  "scheduler": "cosine",
+  "precision": "fp32"
+ },
+ "model_info": {
+  "periods": [
+   24
+  ],
+  "channel_dependence": false,
+  "model_notes": "CycleNet-Pro code with the CycleNet-paper cycle length, linear backbone, no channel mixing"
+ },
+ "params": 32534,
+ "split": {
+  "train_end": 8640,
+  "val_end": 11520,
+  "test_end": 14400,
+  "n_train": 8209,
+  "n_val": 2785,
+  "n_test": 2785
+ },
+ "dataset_sha256": "f18de3ad269cef59bb07b5438d79bb3042d3be49bdeecf01c1cd6d29695ee066",
+ "epochs_run": 12,
+ "best_epoch": 7,
+ "train_time_sec": 28.07,
+ "val_mse": 0.6677419646797931,
+ "val_curve": [
+  0.719561,
+  0.705128,
+  0.696919,
+  0.678573,
+  0.672028,
+  0.68762,
+  0.667742,
+  0.677575,
+  0.673381,
+  0.671569,
+  0.684748,
+  0.679353
+ ],
+ "window_hours": 96.0,
+ "daily_cycle_resolvable": true,
+ "wall_time_sec": 28.07,
+ "provenance": {
+  "commit": "fdfa8542aeb716a9882ef73a03347e478ce8ba96",
+  "dirty": false,
+  "host": "babyLotus",
+  "python": "3.13.7",
+  "torch": "2.8.0+cu128",
+  "cuda": "12.8",
+  "numpy": "2.4.4",
+  "scipy": "1.17.1",
+  "pandas": "3.0.2",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "platform": "Windows-11-10.0.26300-SP0"
+ },
+ "finished_utc": "2026-11-18T20:33:18+00:00"
+}

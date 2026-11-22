@@ -1,0 +1,100 @@
+{
+ "harness_version": "2.0.0",
+ "set": "bigmama",
+ "phase": "lrsel",
+ "dataset": "electricity",
+ "pred_len": 96,
+ "seq_len": 336,
+ "model": "cyclenet_pro_sor",
+ "seed": 2024,
+ "hparams": {
+  "lr": 5e-05,
+  "batch_size": 32,
+  "max_epochs": 30,
+  "patience": 5,
+  "optimizer": "Adam",
+  "scheduler": "cosine",
+  "precision": "fp32"
+ },
+ "model_info": {
+  "candidates": [
+   24,
+   12,
+   8
+  ],
+  "true_periods": [
+   24,
+   12,
+   8
+  ],
+  "periods": [
+   24
+  ],
+  "period_fallback": false,
+  "channel_dependence_auto": true,
+  "channel_dependence": true
+ },
+ "params": 188033,
+ "split": {
+  "train_end": 18412,
+  "val_end": 21043,
+  "test_end": 26304,
+  "n_train": 17981,
+  "n_val": 2536,
+  "n_test": 5166
+ },
+ "dataset_sha256": "7e45845d54c5219bad0ae6bc1b5316cf8ff9cead5d33fa998a5a51c2e4a497ad",
+ "epochs_run": 30,
+ "best_epoch": 27,
+ "train_time_sec": 408.39,
+ "val_mse": 0.12259796467806126,
+ "val_curve": [
+  0.217585,
+  0.189118,
+  0.163646,
+  0.150824,
+  0.143914,
+  0.139165,
+  0.13577,
+  0.133063,
+  0.130955,
+  0.129304,
+  0.127768,
+  0.126905,
+  0.125875,
+  0.125404,
+  0.124583,
+  0.124449,
+  0.124033,
+  0.12367,
+  0.123626,
+  0.123261,
+  0.122978,
+  0.122875,
+  0.12288,
+  0.122774,
+  0.122682,
+  0.122662,
+  0.122598,
+  0.122666,
+  0.122617,
+  0.122615
+ ],
+ "window_hours": 96.0,
+ "daily_cycle_resolvable": true,
+ "wall_time_sec": 408.39,
+ "provenance": {
+  "commit": "e87c7d1bcad2f180b000254b4ebaf59a0acbbd72",
+  "dirty": false,
+  "host": "bigmama",
+  "python": "3.13.18",
+  "torch": "2.8.0+cu128",
+  "cuda": "12.8",
+  "numpy": "2.4.4",
+  "scipy": "1.17.1",
+  "pandas": "3.0.2",
+  "gpu": "NVIDIA RTX PRO 5000 Blackwell",
+  "platform": "Linux-6.8.0-31-generic-x86_64-with-glibc2.39"
+ },
+ "finished_utc": "2026-11-20T01:27:28+00:00"
+}
