@@ -306,7 +306,7 @@ ETTm2,720,patchtst,trained,0.3716130774312963,,16,,,3.0
 electricity,96,seasonal_naive,trained,0.3100170970514969,,54,,,1.0
 electricity,96,linear,trained,0.13833512572778595,,54,,,3.0
 electricity,96,cyclenet_fixed,trained,0.12656840957977153,,54,,,3.0
-electricity,96,patchtst,trained,0.1297650288928438,,54,,,1.0
+electricity,96,patchtst,trained,0.12901776923257627,,54,,,3.0
 electricity,192,seasonal_naive,trained,0.2943868664679704,,27,,,1.0
 electricity,192,linear,trained,0.1540565431853871,,27,,,3.0
 electricity,192,cyclenet_fixed,trained,0.1437520323160254,,27,,,3.0
@@ -326,7 +326,7 @@ solar,96,patchtst,trained,0.17844241301939232,,109,,,3.0
 solar,192,seasonal_naive,trained,0.33758866791268466,,54,,,1.0
 solar,192,linear,trained,0.2853399545736151,,54,,,3.0
 solar,192,cyclenet_fixed,trained,0.2778308805492189,,54,,,3.0
-solar,192,patchtst,trained,0.20110779786827387,,54,,,1.0
+solar,192,patchtst,trained,0.21079098759793938,,54,,,3.0
 solar,336,seasonal_naive,trained,0.4040730464452457,,31,,,1.0
 solar,336,linear,trained,0.2920386455953121,,31,,,3.0
 solar,336,cyclenet_fixed,trained,0.2815962094933756,,31,,,3.0
