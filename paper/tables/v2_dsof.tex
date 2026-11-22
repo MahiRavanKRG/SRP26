@@ -1,0 +1,17 @@
+\begin{tabular}{llcccccccccccc}
+\toprule
+& & \multicolumn{2}{c}{\textbf{Linear student}} & \multicolumn{5}{c}{\textbf{SOR student}} & \multicolumn{2}{c}{\textbf{CNN student}} & & & \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-9} \cmidrule(lr){10-11}
+\textbf{Data} & $H$ & ctrl & hard & ctrl & hard & soft & benefit & cons. & ctrl & benefit & \textbf{TimesFM} & \textbf{CycleNet$_{\text{fix}}$} & \textbf{Pro-SOR} \\
+\midrule
+ETTh1 & 96 & 0.3728 & 0.3740 & 0.4030 & \textbf{0.3941} & \textbf{0.4023} & 0.4091 & 0.4030 & 0.4278 & 0.4278 & 0.3950 & 0.3722 & 0.3914 \\
+ETTh1 & 192 & 0.4066 & 0.4083 & 0.4989 & \textbf{0.4568} & \textbf{0.4672} & \textbf{0.4975} & \textbf{0.4959} & 0.4395 & 0.4421 & 0.4321 & 0.4066 & 0.4305 \\
+ETTh1 & 336 & 0.4324 & 0.4343 & 0.5264 & \textbf{0.4805} & \textbf{0.5060} & \textbf{0.5232} & 0.5304 & 0.4503 & 0.4503 & 0.4512 & 0.4296 & 0.4462 \\
+ETTh1 & 720 & 0.4536 & \textbf{0.4528} & 0.5429 & \textbf{0.5057} & \textbf{0.5158} & \textbf{0.5180} & 0.5429 & 0.4685 & 0.4715 & 0.4296 & 0.4588 & 0.5005 \\
+\midrule
+ETTh2 & 96 & 0.2896 & \textbf{0.2873} & 0.2973 & \textbf{0.2921} & \textbf{0.2921} & 0.2973 & 0.2973 & 0.3659 & \textbf{0.3656} & 0.3137 & 0.2789 & 0.2965 \\
+ETTh2 & 192 & 0.3571 & \textbf{0.3559} & 0.3453 & \textbf{0.3435} & 0.3479 & 0.3453 & 0.3453 & 0.3909 & \textbf{0.3904} & 0.3788 & 0.3434 & 0.3477 \\
+ETTh2 & 336 & 0.3762 & 0.3768 & 0.3953 & \textbf{0.3788} & \textbf{0.3838} & 0.3953 & 0.3953 & 0.3870 & 0.3870 & 0.4045 & 0.3946 & 0.3804 \\
+ETTh2 & 720 & 0.4238 & \textbf{0.4195} & 0.4464 & \textbf{0.4204} & \textbf{0.4224} & 0.4464 & 0.4464 & 0.4481 & \textbf{0.4465} & 0.4209 & 0.4194 & 0.4202 \\
+\bottomrule
+\end{tabular}
