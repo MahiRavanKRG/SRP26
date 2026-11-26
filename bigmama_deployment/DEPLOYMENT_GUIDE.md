@@ -2,7 +2,7 @@
 > **Institution:** University of Hildesheim | ISMLL (Information Systems & Machine Learning Lab)  
 > **Project:** Ultra-lightweight MTS Forecasting Sandbox & Spectral Decomposition (SRP26)  
 > **Supervisor:** Jung Min Choi | **Researcher:** Aaditya Chaturvedi  
-> **Target System:** `master.ismll.de` (SLURM Partition: `STUD`, GPU Nodes: NVIDIA A100 / RTX 8000 / V100)
+> **Target System:** `master.ismll.de` (SLURM Partition: `STUD`, Verified Compute Node `gpu-211`: 4× NVIDIA RTX PRO 6000 Blackwell Max-Q 96GB, AMD EPYC 9275F 24C, 380GB RAM; see full specs in `docs/bigmama_hardware_and_environment.md`)
 
 ---
 

@@ -325,6 +325,107 @@ def rolling_error_tracking(
     return results
 
 
+def band_masks_rfft_torch(
+    horizon: int,
+    fs: float = 1.0,
+    low_cutoff: float = 0.1,
+    high_cutoff: float = 0.4,
+    device: torch.device | None = None,
+):
+    """
+    Build frequency-band boolean masks and one-sided rFFT Parseval energy weights.
+
+    Returns ``(masks, weights)`` where ``masks`` maps ``{"low", "mid", "high"}`` to
+    boolean tensors of shape ``[n_freqs]`` and ``weights`` has shape ``[1, 1, n_freqs]``.
+    """
+    freqs = torch.fft.rfftfreq(horizon, d=1.0 / fs, device=device)
+    weights = torch.full((freqs.shape[0],), 2.0, dtype=torch.float32, device=device)
+    weights[0] = 1.0
+    if horizon % 2 == 0:
+        weights[-1] = 1.0
+
+    masks = {
+        "low": freqs < low_cutoff,
+        "mid": (freqs >= low_cutoff) & (freqs < high_cutoff),
+        "high": freqs >= high_cutoff,
+    }
+    return masks, weights.view(1, 1, -1)
+
+
+def dsof_band_metrics_torch(
+    y_true: torch.Tensor,
+    y_pred: torch.Tensor,
+    fs: float = 1.0,
+    low_cutoff: float = 0.1,
+    high_cutoff: float = 0.4,
+    eps: float = 1e-6,
+) -> Dict[str, object]:
+    """
+    Unified differentiable DSOF spectral evaluation using single-window rFFT.
+
+    Both training loss (``L_spec``) and evaluation (``lsd_*``) share the exact same
+    rFFT log-amplitude formulation so the distillation objective literally equals the
+    squared band-wise Log-Spectral Distance.
+    """
+    y_t = (y_true if y_true.ndim == 3 else y_true.unsqueeze(-1)).float()
+    y_p = (y_pred if y_pred.ndim == 3 else y_pred.unsqueeze(-1)).float()
+    horizon = y_t.shape[1]
+
+    masks, weights = band_masks_rfft_torch(
+        horizon, fs=fs, low_cutoff=low_cutoff, high_cutoff=high_cutoff, device=y_t.device
+    )
+
+    t_perm = y_t.permute(0, 2, 1).contiguous()
+    p_perm = y_p.permute(0, 2, 1).contiguous()
+
+    true_fft = torch.fft.rfft(t_perm, dim=-1)
+    pred_fft = torch.fft.rfft(p_perm, dim=-1)
+    diff_fft = true_fft - pred_fft
+
+    inv_h2 = 1.0 / float(horizon * horizon)
+    diff_power = weights * (diff_fft.abs() ** 2) * inv_h2
+    true_power = weights * (true_fft.abs() ** 2) * inv_h2
+
+    log_amp_true = torch.log(true_fft.abs() + eps)
+    log_amp_pred = torch.log(pred_fft.abs() + eps)
+    sq_log_diff = (log_amp_pred - log_amp_true) ** 2
+
+    dc_mean_sq = torch.mean(torch.mean(t_perm, dim=-1) ** 2)
+    total_mse = torch.mean((y_t - y_p) ** 2)
+    global_lsd_sq = torch.mean(sq_log_diff)
+
+    mse_bands: Dict[str, torch.Tensor] = {}
+    fvu_bands: Dict[str, torch.Tensor] = {}
+    lsd_sq_bands: Dict[str, torch.Tensor] = {}
+
+    for band, mask in masks.items():
+        if not torch.any(mask):
+            zero = y_t.new_zeros(())
+            mse_bands[band] = zero
+            fvu_bands[band] = zero
+            lsd_sq_bands[band] = zero
+            continue
+        mse_b = torch.mean(torch.sum(diff_power[..., mask], dim=-1))
+        p_true_b = torch.mean(torch.sum(true_power[..., mask], dim=-1))
+        var_true_b = torch.clamp(p_true_b - dc_mean_sq if band == "low" else p_true_b, min=eps)
+        mse_bands[band] = mse_b
+        fvu_bands[band] = mse_b / var_true_b
+        lsd_sq_bands[band] = torch.mean(sq_log_diff[..., mask])
+
+    return {
+        "total_mse": total_mse,
+        "global_lsd": torch.sqrt(torch.clamp(global_lsd_sq, min=0.0)),
+        "global_lsd_sq": global_lsd_sq,
+        "mse": mse_bands,
+        "fvu": fvu_bands,
+        "lsd_sq": lsd_sq_bands,
+        "lsd": {b: torch.sqrt(torch.clamp(v, min=0.0)) for b, v in lsd_sq_bands.items()},
+        "true_fft": true_fft,
+        "pred_fft": pred_fft,
+        "masks": masks,
+    }
+
+
 def evaluate_all_spectral_diagnostics(
     y_true: torch.Tensor | np.ndarray,
     y_pred: torch.Tensor | np.ndarray,

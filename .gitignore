@@ -8,7 +8,7 @@ wheels/
 .pytest_cache/
 
 # Virtual environments
-.venv/
+.venv*/
 
 # Raw benchmark datasets (re-fetch with `uv run python data_sets/download_data.py`)
 data_sets/*.csv
@@ -27,9 +27,22 @@ logs/
 *.err
 srp26.egg-info/
 
+# Auto-generated Slurm cluster batch scripts (re-generate via python scripts)
+bigmama_deployment/slurm_scripts/
+
+# Experiment raw data arrays and granular dumps (keep central summary CSVs/MDs)
+*.npy
+results/**/raw/
+results/transform_ablation/*.json
+!results/transform_ablation/transform_ablation_summary.csv
+!results/transform_ablation/transform_ablation_report.md
+results/transform_ablation_smoke/
+results/dsof_sd/
+
 # Personal session logs & local archives (excluded from GitHub)
 .ai_history/
 _local_archive/
+proposed model.md
 
 # LaTeX build artifacts
 *.aux
@@ -44,7 +57,8 @@ _local_archive/
 *.fls
 *.fdb_latexmk
 
-# OS files
+# OS & IDE files
+.vscode/
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -54,3 +68,11 @@ desktop.ini
 *.secret*
 *credentials*
 bigmama_credentials.json
+results/v2/smoke/
+
+# Stage-2 teacher forecast caches (regenerate: python -m srp26.bench.dsof cache-teacher)
+cache/
+results/v2/stage2_smoke/
+
+# Local Windows ACL-repair logs
+.acl-recovery/

@@ -1,0 +1,21 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Dataset} & \textbf{CycleNet$_{\text{fix}}$} & \textbf{Pro-Lin$_{\text{CI}}$} & \textbf{Pro-MLP$_{\text{CI}}$} & \textbf{Pro-CNN$_{\text{CI}}$} & \textbf{Pro-SOR$_{\text{CI}}$} & \textbf{PatchTST} \\
+\midrule
+\multicolumn{7}{l}{\textit{Average test MSE over $H\in\{96,192,336,720\}$}} \\
+ETTh1 & \textbf{0.4168} & \textbf{0.4168} & 0.4261 & 0.4450 & 0.4422 & \underline{0.4191} \\
+ETTh2 & 0.3591 & 0.3591 & \underline{0.3586} & 0.3943 & 0.3604 & \textbf{0.3509} \\
+ETTm1 & 0.3572 & 0.3572 & \underline{0.3514} & 0.3952 & 0.3593 & \textbf{0.3510} \\
+ETTm2 & \textbf{0.2535} & \underline{0.2537} & 0.2617 & 0.3069 & 0.2638 & 0.2573 \\
+Weather & 0.2445 & 0.2445 & \underline{0.2247} & 0.2848 & 0.2289 & \textbf{0.2234} \\
+Electricity & \textbf{0.1582} & 0.1690 & \underline{0.1619} & 0.2400 & 0.1706 & 0.1624 \\
+Traffic & 0.4236 & \underline{0.4221} & 0.4222 & 0.6075 & 0.4281 & \textbf{0.4210} \\
+Solar & 0.2515 & 0.2515 & 0.2170 & 0.2775 & \underline{0.2113} & \textbf{0.2000} \\
+\midrule
+\multicolumn{7}{l}{\textit{Trainable parameters at $H=96$ / $H=720$}} \\
+ETTh1 & 32{,}534 / 242{,}822 & 32{,}534 / 242{,}822 & 221{,}974 / 542{,}086 & 5{,}559 / 5{,}559 & 76{,}668 / 157{,}788 & 81{,}742 / 501{,}694 \\
+Weather & 35{,}418 / 245{,}706 & 35{,}418 / 245{,}706 & 224{,}858 / 544{,}970 & 8{,}443 / 8{,}443 & 79{,}552 / 160{,}672 & 921{,}226 / 4{,}276{,}474 \\
+Electricity & 86{,}922 / 297{,}210 & 40{,}698 / 250{,}986 & 230{,}138 / 550{,}250 & 13{,}723 / 13{,}723 & 84{,}832 / 165{,}952 & 921{,}826 / 4{,}277{,}074 \\
+Traffic & 178{,}892 / 389{,}180 & 199{,}580 / 409{,}868 & 389{,}020 / 709{,}132 & 172{,}605 / 172{,}605 & 243{,}714 / 324{,}834 & 922{,}908 / 4{,}278{,}156 \\
+\bottomrule
+\end{tabular}

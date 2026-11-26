@@ -1,0 +1,22 @@
+\begin{tabular}{lllcccc}
+\toprule
+Question & A & B & cells & median $\Delta$ (\%) & A better & Wilcoxon $p$ \\
+\midrule
+Fixed linear transform vs.\ raw lookback & rFFT-Lin & Linear & 32 & -0.30 & 25/32 & 0.001 \\
+ & DCT-Lin & Linear & 32 & -0.33 & 24/32 & 0.0001 \\
+ & Haar-Lin & Linear & 32 & -0.16 & 25/32 & 0.005 \\
+ & DLinear & Linear & 32 & -0.12 & 23/32 & 0.04 \\
+ & STFT-Lin & Linear & 32 & +1.95 & 4/32 & 3e-07 \\
+Cycle queue (auto period) vs.\ none & Cyc-Lin-CI & Linear & 32 & -1.75 & 26/32 & 0.003 \\
+Cycle queue (dataset period) vs.\ none & Cyc-Fixed & Linear & 32 & -2.27 & 27/32 & 0.0007 \\
+Nonlinear residual (MLP) vs.\ linear & Cyc-MLP-CI & Cyc-Lin-CI & 32 & -1.94 & 20/32 & 0.05 \\
+Patch mixer (SOR) vs.\ linear & Cyc-SOR-CI & Cyc-Lin-CI & 32 & +0.52 & 14/32 & 0.9 \\
+1D-CNN vs.\ linear & Cyc-CNN-CI & Cyc-Lin-CI & 32 & +15.13 & 1/32 & 1e-09 \\
+Channel independent vs.\ auto-mixing & Cyc-Lin-CI & Cyc-Lin & 28 & -1.94 & 17/28 & 0.4 \\
+ & Cyc-MLP-CI & Cyc-MLP & 28 & -1.64 & 25/28 & 1e-06 \\
+ & Cyc-SOR-CI & Cyc-SOR & 28 & -1.99 & 20/28 & 0.001 \\
+ & Cyc-CNN-CI & Cyc-CNN & 28 & -0.29 & 17/28 & 0.7 \\
+PatchTST vs.\ best CycleNet variant & PatchTST & Cyc-MLP-CI & 32 & -0.92 & 20/32 & 0.004 \\
+ & PatchTST & Cyc-Fixed & 32 & -0.55 & 20/32 & 0.08 \\
+\bottomrule
+\end{tabular}

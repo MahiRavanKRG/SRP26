@@ -1,0 +1,16 @@
+\begin{tabular}{lccccccccc}
+\toprule
+& \multicolumn{5}{c}{Untrained / zero-shot} & \multicolumn{4}{c}{Trained on the target dataset} \\
+\cmidrule(lr){2-6}\cmidrule(lr){7-10}
+Dataset & S-Naive & Fourier top-3 & Chronos-T5 & Chronos-Bolt & TimesFM-2.5 & Linear & Cyc-Lin-CI & PatchTST & Best trained$^\dagger$ \\
+\midrule
+ETTh1 & 0.643 & 0.518 & 0.650 & 0.493 & 0.460 & 0.435 & \textbf{0.434} & \underline{0.434} & 0.429 \\
+ETTh2 & 0.478 & 0.513 & 0.500 & 0.389 & 0.381 & \textbf{0.340} & \underline{0.351} & 0.353 & 0.332 \\
+ETTm1 & 0.496 & 1.216 & 0.745 & 0.427 & 0.389 & 0.357 & \underline{0.352} & \textbf{0.351} & 0.347 \\
+ETTm2 & 0.369 & 0.509 & 0.343 & 0.316 & 0.300 & 0.272 & \textbf{0.262} & \underline{0.267} & 0.260 \\
+Electricity & 0.329 & 0.241 & 0.373 & \underline{0.163} & 0.168 & 0.167 & 0.167 & \textbf{0.162} & 0.157 \\
+Solar & 0.351 & 1.695 & 0.842 & 0.738 & 0.343 & 0.274 & \underline{0.264} & \textbf{0.208} & 0.208 \\
+Traffic & 1.226 & 0.683 & 1.138 & 0.476 & \textbf{0.397} & 0.436 & 0.423 & \underline{0.422} & 0.418 \\
+Weather & 0.384 & 0.458 & 0.313 & 0.279 & 0.269 & 0.263 & \underline{0.256} & \textbf{0.233} & 0.231 \\
+\bottomrule
+\end{tabular}
