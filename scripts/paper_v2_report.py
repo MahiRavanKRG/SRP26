@@ -337,6 +337,9 @@ def main() -> None:
     c = fam("cycle")
     macro("vCycleWins", int((c.rel_pct < 0).sum()))
     macro("vCycleCells", len(c))
+    lost = c[c.rel_pct > 0]
+    macro("vCycleLosses", len(lost))
+    macro("vCycleLossWhere", ", ".join(f"{DNAME[r.dataset]} $H={r.H}$" for _, r in lost.iterrows()) or "none")
     macro("vCycleSigBetter", int((c.consistent & (c.rel_pct < 0)).sum()))
     macro("vCycleSigWorse", int((c.consistent & (c.rel_pct > 0)).sum()))
     cyc_by_d = c.groupby("dataset").rel_pct.mean()
