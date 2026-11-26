@@ -1,6 +1,6 @@
 # SRP26 v2 benchmark — final summary (2026-11-21 ~14:10 WEST, automated check)
 
-All phases complete. Raw results are NOT committed (that is your call).
+All phases complete. Raw result files are committed under `results/v2/` (bigmama/ and local/).
 
 | Phase | Count | Status |
 |---|---|---|

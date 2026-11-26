@@ -73,3 +73,6 @@ results/v2/smoke/
 # Stage-2 teacher forecast caches (regenerate: python -m srp26.bench.dsof cache-teacher)
 cache/
 results/v2/stage2_smoke/
+
+# Local Windows ACL-repair logs
+.acl-recovery/

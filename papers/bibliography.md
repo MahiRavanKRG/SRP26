@@ -379,3 +379,19 @@ This bibliography contains the top papers harvested directly from the arXiv API 
 - **Local PDF Link:** [View PDF](file:///d:/uni/SRP26/papers/[2024] WaveToken Enhancing Foundation Models for Time Series Forecasting via Wavelet Tokenization.pdf)
 - **Abstract:** WaveToken is a wavelet-based tokenizer for time series foundation models: it scales and decomposes the input, thresholds and quantizes wavelet coefficients, and pre-trains an autoregressive model to forecast coefficients. On 42 datasets (in-domain and zero-shot), it provides better accuracy than recent foundation models with a much smaller vocabulary (1024 tokens), performs on par or better than dataset-specific models, and captures trends, sparse spikes, and non-stationary patterns. (Amazon/Stanford/CMU collaboration.)
 
+
+---
+
+## Principles of Forecasting (read online, not stored in this repo)
+
+These are third-party texts, so this repository links to them instead of keeping copies.
+
+- Hyndman, R. J., & Athanasopoulos, G. *Forecasting: Principles and Practice*, 2nd ed. Free online edition: [https://otexts.com/fpp2/](https://otexts.com/fpp2/)
+- Armstrong, J. S. chapters from *Principles of Forecasting*, on Penn ScholarlyCommons:
+  - Evaluating Forecasting Methods: [https://repository.upenn.edu/items/3807b911-e76d-4df3-b0c4-d23208facb04](https://repository.upenn.edu/items/3807b911-e76d-4df3-b0c4-d23208facb04)
+  - Selecting Forecasting Methods: [https://repository.upenn.edu/items/bce6ae77-c08a-452f-81a9-23fedeea6b24](https://repository.upenn.edu/items/bce6ae77-c08a-452f-81a9-23fedeea6b24)
+  - Extrapolation for Time-Series and Cross-Sectional Data: [https://repository.upenn.edu/items/9f39a72c-6cab-4515-a8ab-ac000ca4a57b](https://repository.upenn.edu/items/9f39a72c-6cab-4515-a8ab-ac000ca4a57b)
+  - Rule-Based Forecasting: [https://repository.upenn.edu/items/5d345860-4caa-436e-b7a7-b7d5bb1a98e3](https://repository.upenn.edu/items/5d345860-4caa-436e-b7a7-b7d5bb1a98e3)
+  - Standards and Practices for Forecasting: [https://repository.upenn.edu/items/71ff223f-a28c-4f02-b3b8-f0e01c8b29ca](https://repository.upenn.edu/items/71ff223f-a28c-4f02-b3b8-f0e01c8b29ca)
+  - The Forecasting Principles Project: [https://repository.upenn.edu/items/57b926db-5dd4-4b62-8d9a-32474fcad771](https://repository.upenn.edu/items/57b926db-5dd4-4b62-8d9a-32474fcad771)
+  - Golden Rule of Forecasting: [https://repository.upenn.edu/items/6b6b59e1-2797-4a74-9daf-0348842d5f07](https://repository.upenn.edu/items/6b6b59e1-2797-4a74-9daf-0348842d5f07)
