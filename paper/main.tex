@@ -194,7 +194,7 @@ The ETT part of the grid was also run on a laptop (\vXmGpu{}, \vXmRuns{} runs) w
 \resizebox{\textwidth}{!}{%
 \input{tables/v2_main_mse.tex}%
 }
-\caption{\textbf{Controlled benchmark: test MSE (mean $\pm$ std over 3 seeds), $L=336$.} Per row, \textbf{bold} is the lowest and \underline{underlined} the second-lowest value (ties are all marked). S-Naive is deterministic. MAE is in Table~\ref{tab:main_mae} (appendix).}
+\caption{\textbf{Controlled benchmark: test MSE (mean $\pm$ std over 3 seeds), $L=336$.} Per row, \textbf{bold} is the lowest and \underline{underlined} the second-lowest value (ties are all marked). S-Naive is deterministic. On ETTh1 the correlation test leaves channel mixing off, so Pro-Lin, Pro-MLP, Pro-CNN and Pro-SOR are the same models as their CI variants (Table~\ref{tab:ci_full}) and give the same numbers; Pro-Lin also equals CycleNet$_{\text{fix}}$ there, since discovery returns the known period (24). MAE is in Table~\ref{tab:main_mae} (appendix).}
 \label{tab:main_mse}
 \end{table*}
 
@@ -409,7 +409,7 @@ Under one controlled, multi-seed protocol, the recurrent cycle of CycleNet is th
 \resizebox{\textwidth}{!}{%
 \input{tables/v2_main_mae.tex}%
 }
-\caption{\textbf{Controlled benchmark: test MAE} (mean $\pm$ std over 3 seeds). Same conventions as Table~\ref{tab:main_mse}.}
+\caption{\textbf{Controlled benchmark: test MAE} (mean $\pm$ std over 3 seeds). Same conventions as Table~\ref{tab:main_mse}, including the note on ETTh1 (Pro-$\ast$ equal their CI variants there).}
 \label{tab:main_mae}
 \end{table*}
 
